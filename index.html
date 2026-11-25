@@ -3,23 +3,19 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>주 2회 지하 헬스장 전신 루틴</title>
-  <!-- Tailwind CSS 로드 -->
+  <title>나의 지하 헬스장 운동 일지 & 루틴</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- 한글 가독성을 위한 Noto Sans KR 폰트 -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- Tone.js (타이머 종료 알림음용) -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
   <style>
     body {
       font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #f1f5f9; /* Slate 100 */
-      color: #0f172a; /* Slate 900 */
+      background-color: #f1f5f9;
+      color: #0f172a;
       -webkit-tap-highlight-color: transparent;
     }
-    /* 숫자 입력 화살표 제거 */
     input[type="number"]::-webkit-inner-spin-button,
     input[type="number"]::-webkit-outer-spin-button {
       -webkit-appearance: none;
@@ -32,34 +28,52 @@
 </head>
 <body class="antialiased selection:bg-blue-100 selection:text-blue-900">
 
-  <!-- 메인 모바일 컨테이너 (최대 너비 480px 중앙 정렬) -->
-  <div class="max-w-[480px] mx-auto min-h-screen bg-slate-50 shadow-xl border-x border-slate-200/80 pb-12">
+  <div class="max-w-[480px] mx-auto min-h-screen bg-slate-50 shadow-xl border-x border-slate-200/80 pb-14">
     
-    <!-- 상단 고정 헤더 & 휴식 타이머 -->
+    <!-- 상단 고정 헤더 -->
     <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
-      <div class="px-4 pt-4 pb-3">
+      <div class="px-4 pt-3.5 pb-2.5">
         <div class="flex items-start justify-between gap-2">
           <div>
-            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200 mb-1.5">
-              <span>🏋️‍♂️ 전신 순환 · 기구 일러스트 가이드</span>
+            <div class="flex items-center gap-1.5 mb-1">
+              <span id="sync-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
+                ⚪ 깃허브 미연동 (로컬 모드)
+              </span>
             </div>
-            <h1 class="text-xl font-extrabold tracking-tight text-slate-900 leading-snug">
-              주 2회 지하 헬스장 전신 루틴 (약 45~50분)
+            <h1 id="routine-title" class="text-lg font-extrabold tracking-tight text-slate-900 leading-snug">
+              주 2회 지하 헬스장 전신 루틴
             </h1>
-            <p class="text-xs font-medium text-slate-500 mt-0.5">
-              기구 그림을 보고 순서대로 따라 하세요 · 하체·코어·상체 밸런스
+            <p id="routine-subtitle" class="text-[11px] font-medium text-slate-500 mt-0.5">
+              기구 그림을 보고 순서대로 따라 하세요 · 약 45~50분
             </p>
           </div>
           <button 
             onclick="openResetModal()" 
-            class="shrink-0 px-3 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 border border-slate-200 transition-colors"
-            title="오늘 체크한 세트 초기화">
-            초기화
+            class="shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 border border-slate-200 transition">
+            체크 초기화
           </button>
         </div>
 
-        <!-- 전체 진행률 바 -->
-        <div class="mt-3">
+        <!-- 네비게이션 탭 -->
+        <nav class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl mt-3">
+          <button onclick="switchTab('workout')" id="tab-workout" class="tab-btn py-1.5 rounded-lg text-xs font-extrabold bg-white text-blue-700 shadow-xs transition">
+            🏋️ 오늘 운동
+          </button>
+          <button onclick="switchTab('history')" id="tab-history" class="tab-btn py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+            📅 운동 일지
+          </button>
+          <button onclick="switchTab('routine')" id="tab-routine" class="tab-btn py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+            🔄 루틴 교체
+          </button>
+          <button onclick="switchTab('settings')" id="tab-settings" class="tab-btn py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition">
+            ⚙️ 깃허브
+          </button>
+        </nav>
+      </div>
+
+      <!-- 오늘 운동 탭 전용: 진행률 바 & 휴식 타이머 -->
+      <div id="workout-subheader">
+        <div class="px-4 pb-2.5">
           <div class="flex justify-between items-center text-[11px] font-semibold text-slate-500 mb-1">
             <span>오늘 운동 달성률</span>
             <span id="progress-text" class="text-blue-600 font-bold">0% (0/23)</span>
@@ -68,547 +82,459 @@
             <div id="progress-bar" class="h-full bg-blue-600 rounded-full transition-all duration-300 ease-out" style="width: 0%"></div>
           </div>
         </div>
-      </div>
 
-      <!-- 내장 휴식 타이머 바 -->
-      <div class="bg-slate-900 text-white px-4 py-2.5 flex items-center justify-between gap-2">
-        <div class="flex items-center gap-2">
-          <span class="text-xs font-medium text-slate-300">⏱️ 휴식 타이머</span>
-          <span id="timer-display" class="font-mono text-lg font-extrabold text-blue-400 tracking-wider">00:00</span>
-        </div>
-        <div class="flex items-center gap-1.5">
-          <button onclick="startTimer(45)" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 active:scale-95 transition">
-            45초
-          </button>
-          <button onclick="startTimer(60)" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 active:scale-95 transition">
-            60초
-          </button>
-          <button onclick="stopTimer()" id="timer-stop-btn" class="hidden px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 active:scale-95 transition">
-            정지
-          </button>
-          <button onclick="toggleSound()" id="sound-toggle-btn" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="알림음 켜기/끄기">
-            🔔
-          </button>
+        <div class="bg-slate-900 text-white px-4 py-2 flex items-center justify-between gap-2">
+          <div class="flex items-center gap-2">
+            <span class="text-xs font-medium text-slate-300">⏱️ 휴식 타이머</span>
+            <span id="timer-display" class="font-mono text-base font-extrabold text-blue-400 tracking-wider">00:00</span>
+          </div>
+          <div class="flex items-center gap-1.5">
+            <button onclick="startTimer(45)" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 active:scale-95 transition">45초</button>
+            <button onclick="startTimer(60)" class="px-2.5 py-1 rounded-lg text-xs font-bold bg-blue-600 hover:bg-blue-500 active:scale-95 transition">60초</button>
+            <button onclick="stopTimer()" id="timer-stop-btn" class="hidden px-2.5 py-1 rounded-lg text-xs font-bold bg-rose-600 hover:bg-rose-500 active:scale-95 transition">정지</button>
+            <button onclick="toggleSound()" id="sound-toggle-btn" class="p-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 transition" title="알림음 켜기/끄기">🔔</button>
+          </div>
         </div>
       </div>
     </header>
 
-    <!-- 운동 루틴 카드 리스트 영역 -->
-    <main id="routine-container" class="px-4 pt-4 space-y-3">
-      <!-- JavaScript로 카드가 동적 렌더링됩니다 -->
-    </main>
+    <!-- [탭 1] 오늘 운동 화면 -->
+    <section id="view-workout" class="px-4 pt-4 space-y-3">
+      <div id="routine-container" class="space-y-3"></div>
 
-    <!-- 하단 주의사항 요약 카드 -->
-    <section class="px-4 mt-6">
-      <div class="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 shadow-sm">
+      <!-- 오늘 운동 메모 & GitHub 저장 카드 -->
+      <div class="bg-white border border-blue-200 rounded-2xl p-4 shadow-sm mt-5">
+        <h2 class="text-sm font-extrabold text-slate-900 mb-2">📝 오늘 운동 컨디션 메모 (선택)</h2>
+        <textarea 
+          id="workout-memo" 
+          rows="2" 
+          placeholder="예: 레그 프레스 40kg 가뿐함, 다음엔 45kg 도전! 어깨 컨디션 양호."
+          class="w-full rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-800 focus:outline-none focus:border-blue-500"></textarea>
+
+        <button 
+          id="save-github-btn"
+          onclick="saveWorkoutToGitHub()" 
+          class="mt-3 w-full py-3.5 rounded-xl text-sm font-extrabold bg-blue-600 hover:bg-blue-700 active:scale-[0.99] text-white shadow-md transition flex items-center justify-center gap-2">
+          <span>💾 오늘 운동 완료 & 깃허브에 기록 저장</span>
+        </button>
+        <p class="text-[11px] text-slate-400 text-center mt-2">
+          * 깃허브 연동 시 저장소의 <code class="text-slate-600 font-semibold">workout_logs.json</code> 파일에 자동 누적됩니다.
+        </p>
+      </div>
+
+      <!-- 하단 주의사항 요약 -->
+      <div class="bg-amber-50/90 border border-amber-200/90 rounded-2xl p-4 shadow-xs">
         <div class="flex items-center justify-between cursor-pointer" onclick="togglePrecautions()">
-          <h2 class="text-sm font-extrabold text-amber-900 flex items-center gap-1.5">
-            <span>⚠️ 부상 예방을 위한 주요 주의점</span>
-          </h2>
-          <span id="precaution-arrow" class="text-xs font-bold text-amber-700 transition-transform duration-200">▼</span>
+          <h2 class="text-xs font-extrabold text-amber-900">⚠️ 부상 예방을 위한 주요 주의점</h2>
+          <span id="precaution-arrow" class="text-xs font-bold text-amber-700">▼</span>
         </div>
-        
-        <div id="precaution-content" class="mt-3 space-y-2.5 text-xs text-amber-950 leading-relaxed border-t border-amber-200/70 pt-3">
-          <div class="flex gap-2">
-            <span class="font-extrabold text-amber-700 shrink-0">1. 무게 설정 기준</span>
-            <p class="text-slate-700">마지막 2~3회가 약간 뻐근하지만 <strong>자세가 무너지지 않는 무게</strong>로 설정하세요. 첫 2주는 가볍게 궤적을 익히는 데 집중합니다.</p>
-          </div>
-          <div class="flex gap-2">
-            <span class="font-extrabold text-amber-700 shrink-0">2. 어깨·상부 등 보호</span>
-            <p class="text-slate-700">동작 시작 전 항상 <strong>가슴을 살짝 들고 어깨를 아래로 내린(패킹) 상태</strong>를 유지해 회전근개와 승모근 부담을 줄이세요.</p>
-          </div>
-          <div class="flex gap-2">
-            <span class="font-extrabold text-amber-700 shrink-0">3. 뒤꿈치·무릎 정렬</span>
-            <p class="text-slate-700">레그 프레스 시 <strong>발뒤꿈치에 무게중심</strong>을 싣고, 무릎이 안쪽으로 모이지 않게 발끝 방향과 나란히 정렬합니다.</p>
-          </div>
-          <div class="flex gap-2">
-            <span class="font-extrabold text-amber-700 shrink-0">4. 호흡법</span>
-            <p class="text-slate-700">힘을 쓰며 밀거나 당길 때 숨을 내쉬고(후~), 제자리로 돌아올 때 들이마십니다. 숨을 참지 마세요.</p>
-          </div>
+        <div id="precaution-content" class="mt-2.5 space-y-2 text-xs text-amber-950 leading-relaxed border-t border-amber-200/70 pt-2.5">
+          <p><strong class="text-amber-800">1. 무게 기준:</strong> 마지막 2~3회가 뻐근하지만 자세가 무너지지 않는 무게로 설정하세요.</p>
+          <p><strong class="text-amber-800">2. 어깨 보호:</strong> 시작 전 항상 가슴을 살짝 들고 어깨를 아래로 내린(패킹) 상태를 유지하세요.</p>
+          <p><strong class="text-amber-800">3. 무릎·뒤꿈치:</strong> 레그 프레스 시 발뒤꿈치에 힘을 싣고 무릎이 안으로 모이지 않게 정렬합니다.</p>
+          <p><strong class="text-amber-800">4. 호흡법:</strong> 힘을 쓰며 밀거나 당길 때 내쉬고(후~), 돌아올 때 들이마십니다.</p>
         </div>
       </div>
     </section>
 
-    <!-- 캡처 안내 문구 -->
-    <footer class="px-4 mt-5 text-center">
-      <p class="text-[11px] text-slate-400">
-        💡 화면을 그대로 캡처해 갤러리에 저장하거나, 브라우저에 띄워두고 세트를 터치하며 기록하세요. (입력한 무게와 체크는 자동 저장됩니다)
-      </p>
-    </footer>
+    <!-- [탭 2] 운동 일지 (히스토리) 화면 -->
+    <section id="view-history" class="hidden px-4 pt-4 space-y-3">
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+        <div class="flex items-center justify-between gap-2">
+          <div>
+            <h2 class="text-base font-extrabold text-slate-900">📅 누적 운동 일지</h2>
+            <p class="text-xs text-slate-500 mt-0.5">기록된 무게와 횟수 추이를 확인하세요.</p>
+          </div>
+          <button onclick="copyLogsForAI()" class="px-3 py-2 rounded-xl text-xs font-extrabold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition shrink-0">
+            📋 기록 복사 (AI 전달용)
+          </button>
+        </div>
+        <div class="mt-3 flex gap-2">
+          <button onclick="fetchLogsFromGitHub(true)" class="flex-1 py-2 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            🔄 깃허브에서 최신 기록 불러오기
+          </button>
+        </div>
+      </div>
+
+      <div id="history-list" class="space-y-3">
+        <!-- 누적 운동 기록 카드 렌더링 영역 -->
+      </div>
+    </section>
+
+    <!-- [탭 3] 루틴 교체 화면 -->
+    <section id="view-routine" class="hidden px-4 pt-4 space-y-3">
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3">
+        <div>
+          <h2 class="text-base font-extrabold text-slate-900">🔄 새 운동 루틴 적용하기</h2>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            운동 기록이 쌓인 뒤 AI에게 <strong>"다음 루틴 추천해줘"</strong>라고 요청해 받은 <strong>루틴 JSON 코드</strong>를 아래에 붙여넣으면 기구 그림과 프로그램이 새 루틴으로 즉시 바뀝니다.
+          </p>
+        </div>
+
+        <textarea 
+          id="custom-routine-input" 
+          rows="7" 
+          placeholder='여기에 AI가 만들어준 루틴 JSON 코드를 붙여넣으세요...'
+          class="w-full rounded-xl border border-slate-300 bg-slate-50 p-3 font-mono text-xs text-slate-800 focus:outline-none focus:border-blue-500"></textarea>
+
+        <div class="flex gap-2">
+          <button onclick="applyCustomRoutine()" class="flex-1 py-3 rounded-xl text-xs font-extrabold bg-blue-600 hover:bg-blue-700 text-white shadow-xs transition">
+            ✅ 새 루틴 적용하기
+          </button>
+          <button onclick="restoreDefaultRoutine()" class="px-3.5 py-3 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+            기본 루틴 복원
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- [탭 4] 깃허브 연동 설정 화면 -->
+    <section id="view-settings" class="hidden px-4 pt-4 space-y-3">
+      <div class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs space-y-3.5">
+        <div>
+          <h2 class="text-base font-extrabold text-slate-900">⚙️ GitHub 자동 저장 연동</h2>
+          <p class="text-xs text-slate-500 mt-1 leading-relaxed">
+            한 번만 입력해 두시면 핸드폰 브라우저에 안전하게 저장되며, 운동 완료 시 내 GitHub 저장소의 <code class="text-blue-700 font-semibold">workout_logs.json</code> 파일에 자동 커밋됩니다.
+          </p>
+        </div>
+
+        <div>
+          <label class="block text-xs font-extrabold text-slate-700 mb-1">GitHub 아이디 (Username)</label>
+          <input id="gh-owner" type="text" placeholder="예: hyunsu09" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-extrabold text-slate-700 mb-1">저장소 이름 (Repository)</label>
+          <input id="gh-repo" type="text" placeholder="예: my-workout" class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-semibold text-slate-900 focus:outline-none focus:border-blue-500">
+        </div>
+
+        <div>
+          <label class="block text-xs font-extrabold text-slate-700 mb-1">Personal Access Token (Fine-grained PAT)</label>
+          <input id="gh-token" type="password" placeholder="github_pat_..." class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs font-mono text-slate-900 focus:outline-none focus:border-blue-500">
+          <p class="text-[11px] text-slate-400 mt-1">
+            * 해당 저장소의 <strong>Contents: Read and write</strong> 권한만 부여된 토큰을 사용하세요.
+          </p>
+        </div>
+
+        <button onclick="saveGitHubSettings()" class="w-full py-3 rounded-xl text-xs font-extrabold bg-slate-900 hover:bg-slate-800 text-white shadow-xs transition">
+          🔗 설정 저장 및 깃허브 기록 동기화
+        </button>
+      </div>
+    </section>
+
   </div>
 
-  <!-- 커스텀 초기화 확인 모달 (alert/confirm 대체) -->
+  <!-- 초기화 확인 모달 -->
   <div id="reset-modal" class="fixed inset-0 z-50 hidden items-center justify-center bg-slate-900/60 backdrop-blur-xs px-4">
     <div class="bg-white rounded-2xl max-w-xs w-full p-5 shadow-2xl border border-slate-100">
-      <h3 class="text-base font-extrabold text-slate-900">체크 기록을 초기화할까요?</h3>
+      <h3 class="text-base font-extrabold text-slate-900">오늘 세트 체크를 초기화할까요?</h3>
       <p class="text-xs text-slate-500 mt-1.5 leading-relaxed">
-        완료 표시한 모든 세트 체크가 해제됩니다. 기록해 둔 무게(kg)는 다음 운동을 위해 그대로 유지됩니다.
+        완료 표시한 체크만 해제됩니다. 입력한 무게(kg)와 깃허브에 저장된 일지는 유지됩니다.
       </p>
       <div class="mt-4 flex gap-2">
-        <button onclick="closeResetModal()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
-          취소
-        </button>
-        <button onclick="confirmReset()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition">
-          체크 초기화
-        </button>
+        <button onclick="closeResetModal()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-slate-100 hover:bg-slate-200 text-slate-700 transition">취소</button>
+        <button onclick="confirmReset()" class="flex-1 py-2.5 rounded-xl text-xs font-bold bg-blue-600 hover:bg-blue-700 text-white transition">체크 초기화</button>
       </div>
     </div>
   </div>
 
-  <!-- 토스트 메시지 박스 -->
-  <div id="toast-msg" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900/95 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg transition-opacity duration-300">
+  <!-- 토스트 알림 -->
+  <div id="toast-msg" class="fixed bottom-5 left-1/2 -translate-x-1/2 z-50 hidden bg-slate-900/95 text-white text-xs font-semibold px-4 py-2.5 rounded-full shadow-lg max-w-[90%] text-center">
     알림 메시지
   </div>
 
   <script>
-    // 각 기구별 맞춤 SVG 일러스트 (EXFUN 기구 외형 + 사람 자세 + 움직임 화살표 + 핵심 라벨)
+    // 기구별 SVG 일러스트 라이브러리 (iconKey로 매핑하여 새 루틴에서도 재사용 가능)
     const machineSVGs = {
-      // 0. 트레드밀 (워밍업)
-      0: `
-        <svg viewBox="0 0 320 155" class="w-full h-auto block" role="img" aria-label="트레드밀 걷기 일러스트">
-          <defs>
-            <marker id="arr-0" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/>
-            </marker>
-          </defs>
-          <!-- 바닥선 -->
-          <line x1="25" y1="138" x2="295" y2="138" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-          <!-- 트레드밀 본체 (회색 데크 & 기둥 & 모니터) -->
-          <path d="M 55 132 L 225 126 L 225 135 L 55 138 Z" fill="#334155"/>
-          <rect x="65" y="128" width="150" height="4" rx="2" fill="#64748b"/>
-          <path d="M 212 128 L 228 58 L 236 58 L 222 128 Z" fill="#1e293b"/>
-          <rect x="215" y="42" width="28" height="18" rx="3" fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
-          <rect x="218" y="45" width="22" height="11" rx="1" fill="#38bdf8" opacity="0.8"/>
-          <path d="M 225 76 L 195 76" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
-          <!-- 걷는 사람 -->
-          <circle cx="145" cy="40" r="10" fill="#2563eb"/>
-          <path d="M 145 52 L 142 86" stroke="#2563eb" stroke-width="8" stroke-linecap="round"/>
-          <!-- 팔 흔들기 -->
-          <path d="M 144 58 L 158 72 L 170 68" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M 144 58 L 130 74 L 122 84" fill="none" stroke="#60a5fa" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 걷는 다리 -->
-          <path d="M 142 86 L 158 106 L 166 125" fill="none" stroke="#1d4ed8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M 142 86 L 126 108 L 112 126" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 진행 방향 화살표 -->
-          <path d="M 90 112 L 118 112" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-0)"/>
-          <rect x="20" y="14" width="124" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
-          <text x="82" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">가볍게 걷기 (관절 예열)</text>
-        </svg>
-      `,
-      // 1. 시티드 레그 프레스 (하체 전반)
-      1: `
-        <svg viewBox="0 0 320 155" class="w-full h-auto block" role="img" aria-label="시티드 레그 프레스 자세 일러스트">
-          <defs>
-            <marker id="arr-1" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/>
-            </marker>
-          </defs>
-          <line x1="20" y1="138" x2="300" y2="138" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-          <!-- EXFUN 시티드 레그 프레스 프레임 -->
-          <!-- 뒤쪽 웨이트 타워 -->
-          <rect x="42" y="25" width="32" height="113" rx="3" fill="#1e293b"/>
-          <rect x="48" y="55" width="20" height="55" rx="1" fill="#475569"/>
-          <!-- 하단 레일 & 시트 -->
-          <rect x="65" y="124" width="185" height="8" rx="3" fill="#334155"/>
-          <rect x="172" y="102" width="44" height="10" rx="4" fill="#0f172a"/>
-          <rect x="206" y="54" width="12" height="52" rx="5" fill="#0f172a"/>
-          <path d="M 192 112 L 192 124 M 212 106 L 212 124" stroke="#334155" stroke-width="5"/>
-          <!-- 앞쪽 발판 -->
-          <rect x="94" y="62" width="10" height="58" rx="3" transform="rotate(-12 94 62)" fill="#1e293b"/>
-          <!-- 사람 (의자에 앉아 발판을 미는 자세) -->
-          <circle cx="195" cy="40" r="10" fill="#2563eb"/>
-          <path d="M 195 52 L 195 94 L 168 96" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 손잡이 잡은 팔 -->
-          <path d="M 195 62 L 186 85 L 186 104" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 다리 (발뒤꿈치로 발판 밀기) -->
-          <path d="M 168 96 L 138 74 L 106 88" fill="none" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 뒤꿈치 강조 원 -->
-          <circle cx="105" cy="92" r="5" fill="#f97316"/>
-          <!-- 미는 방향 화살표 -->
-          <path d="M 155 60 L 116 60" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-1)"/>
-          <!-- 안내 라벨 -->
-          <rect x="85" y="14" width="150" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
-          <text x="160" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">무릎 95%만 펴기 · 뒤꿈치 힘</text>
-        </svg>
-      `,
-      // 2. 라잉 레그 컬 (햄스트링)
-      2: `
-        <svg viewBox="0 0 320 155" class="w-full h-auto block" role="img" aria-label="라잉 레그 컬 자세 일러스트">
-          <defs>
-            <marker id="arr-2" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/>
-            </marker>
-          </defs>
-          <line x1="20" y1="138" x2="300" y2="138" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-          <!-- EXFUN 라잉 레그 컬 머신 -->
-          <rect x="38" y="26" width="32" height="112" rx="3" fill="#1e293b"/>
-          <rect x="44" y="58" width="20" height="50" rx="1" fill="#475569"/>
-          <!-- 꺾인 벤치 패드 -->
-          <path d="M 82 94 L 142 84 L 218 102" fill="none" stroke="#0f172a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="M 105 92 L 105 138 M 195 98 L 195 138" stroke="#334155" stroke-width="6"/>
-          <!-- 사람 (엎드려서 발목 롤러를 엉덩이 쪽으로 당김) -->
-          <circle cx="84" cy="74" r="9" fill="#2563eb"/>
-          <path d="M 94 78 L 142 74 L 185 88" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 앞 손잡이 잡은 팔 -->
-          <path d="M 102 78 L 94 102" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
-          <!-- 종아리 컬 동작 (위로 굽힘) -->
-          <path d="M 185 88 L 214 54" fill="none" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round"/>
-          <!-- 발목 롤러 패드 -->
-          <circle cx="218" cy="56" r="7" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
-          <!-- 컬 방향 곡선 화살표 -->
-          <path d="M 244 96 Q 246 66 228 48" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-2)"/>
-          <!-- 안내 라벨 -->
-          <rect x="92" y="14" width="156" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
-          <text x="170" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">허리 들림 방지 · 엉덩이 쪽 컬</text>
-        </svg>
-      `,
-      // 3. 레그 익스텐션 (허벅지 앞쪽)
-      3: `
-        <svg viewBox="0 0 320 155" class="w-full h-auto block" role="img" aria-label="레그 익스텐션 자세 일러스트">
-          <defs>
-            <marker id="arr-3" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/>
-            </marker>
-          </defs>
-          <line x1="20" y1="138" x2="300" y2="138" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-          <!-- EXFUN 레그 익스텐션 머신 -->
-          <rect x="42" y="26" width="32" height="112" rx="3" fill="#1e293b"/>
-          <rect x="48" y="58" width="20" height="50" rx="1" fill="#475569"/>
-          <!-- 의자 등받이 & 좌판 -->
-          <rect x="96" y="52" width="12" height="50" rx="5" fill="#0f172a"/>
-          <rect x="102" y="96" width="52" height="10" rx="4" fill="#0f172a"/>
-          <path d="M 126 106 L 126 138" stroke="#334155" stroke-width="6"/>
-          <!-- 사람 (앉아서 다리를 앞으로 쭉 차올림) -->
-          <circle cx="118" cy="40" r="10" fill="#2563eb"/>
-          <path d="M 118 52 L 118 88 L 154 88" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 옆 손잡이 잡은 팔 -->
-          <path d="M 118 62 L 126 96" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
-          <!-- 다리 앞으로 펴기 -->
-          <path d="M 154 88 L 204 86" fill="none" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round"/>
-          <!-- 발목 위 패드 -->
-          <circle cx="198" cy="78" r="7" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
-          <!-- 차올리는 곡선 화살표 -->
-          <path d="M 176 124 Q 214 118 218 92" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-3)"/>
-          <!-- 안내 라벨 -->
-          <rect x="128" y="14" width="154" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
-          <text x="205" y="29" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">올려서 1초 정지 · 천천히 내림</text>
-        </svg>
-      `,
-      // 4. 랫 풀다운 머신 (등)
-      4: `
-        <svg viewBox="0 0 320 155" class="w-full h-auto block" role="img" aria-label="랫 풀다운 머신 자세 일러스트">
-          <defs>
-            <marker id="arr-4" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/>
-            </marker>
-          </defs>
-          <line x1="20" y1="138" x2="300" y2="138" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-          <!-- EXFUN 랫 풀다운 기둥 & 웨이트 타워 -->
-          <rect x="215" y="34" width="32" height="104" rx="3" fill="#1e293b"/>
-          <rect x="221" y="62" width="20" height="50" rx="1" fill="#475569"/>
-          <!-- 상단 풀리 기둥 -->
-          <path d="M 148 138 L 148 14 L 195 22" fill="none" stroke="#1e293b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-          <line x1="148" y1="56" x2="215" y2="56" stroke="#334155" stroke-width="5"/>
-          <!-- 좌석 & 허벅지 고정 패드 -->
-          <rect x="108" y="102" width="44" height="10" rx="4" fill="#0f172a"/>
-          <path d="M 130 112 L 130 138" stroke="#334155" stroke-width="6"/>
-          <rect x="132" y="80" width="24" height="11" rx="5" fill="#0f172a" stroke="#64748b" stroke-width="1"/>
-          <!-- 케이블 & 와이드 바 -->
-          <line x1="168" y1="20" x2="168" y2="48" stroke="#64748b" stroke-width="2" stroke-dasharray="3,2"/>
-          <line x1="136" y1="48" x2="188" y2="48" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
-          <!-- 사람 (허벅지 고정 후 쇄골 쪽으로 바 당김) -->
-          <circle cx="128" cy="48" r="9" fill="#2563eb"/>
-          <path d="M 128 59 L 126 95 L 154 96 L 154 134" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 바를 잡은 팔 -->
-          <path d="M 128 65 L 144 50" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
-          <path d="M 132 65 L 176 50" fill="none" stroke="#60a5fa" stroke-width="5" stroke-linecap="round"/>
-          <!-- 아래로 당기는 화살표 -->
-          <path d="M 196 34 L 196 68" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-4)"/>
-          <!-- 안내 라벨 -->
-          <rect x="18" y="14" width="118" height="34" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
-          <text x="77" y="28" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e40af">날개뼈 아래로 내리고</text>
-          <text x="77" y="42" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e40af">쇄골 쪽으로 당기기</text>
-        </svg>
-      `,
-      // 5. 체스트 프레스 / 펙 덱 플라이 (가슴)
-      5: `
-        <svg viewBox="0 0 320 155" class="w-full h-auto block" role="img" aria-label="체스트 프레스 및 펙 덱 플라이 자세 일러스트">
-          <defs>
-            <marker id="arr-5" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/>
-            </marker>
-          </defs>
-          <line x1="20" y1="138" x2="300" y2="138" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-          <!-- EXFUN 체스트 프레스 / 펙 덱 머신 -->
-          <rect x="44" y="28" width="32" height="110" rx="3" fill="#1e293b"/>
-          <rect x="50" y="58" width="20" height="50" rx="1" fill="#475569"/>
-          <!-- 등받이 & 좌판 -->
-          <rect x="114" y="46" width="12" height="54" rx="5" fill="#0f172a"/>
-          <rect x="120" y="96" width="44" height="10" rx="4" fill="#0f172a"/>
-          <path d="M 138 106 L 138 138" stroke="#334155" stroke-width="6"/>
-          <!-- 상단 프레스 암 -->
-          <path d="M 120 24 L 166 24 L 166 66" fill="none" stroke="#334155" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 사람 (등받이에 등을 대고 앞으로 밀기/모으기) -->
-          <circle cx="136" cy="40" r="9" fill="#2563eb"/>
-          <path d="M 134 51 L 134 90 L 164 90 L 168 134" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 앞으로 미는 팔 -->
-          <path d="M 136 62 L 166 64" fill="none" stroke="#1d4ed8" stroke-width="6" stroke-linecap="round"/>
-          <!-- 앞으로 미는 화살표 -->
-          <path d="M 176 64 L 212 64" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-5)"/>
-          <!-- 안내 라벨 -->
-          <rect x="148" y="14" width="150" height="34" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
-          <text x="223" y="28" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e40af">손잡이를 가슴 중앙 높이</text>
-          <text x="223" y="42" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e40af">어깨 힘 빼고 앞으로 밀기</text>
-        </svg>
-      `,
-      // 6. 리어 델트 플라이 (후면 어깨·상부 등 - 반대로 앉기)
-      6: `
-        <svg viewBox="0 0 320 155" class="w-full h-auto block" role="img" aria-label="리어 델트 플라이 반대로 앉는 자세 일러스트">
-          <defs>
-            <marker id="arr-6" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/>
-            </marker>
-          </defs>
-          <line x1="20" y1="138" x2="300" y2="138" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-          <!-- 펙 덱 머신 (등받이 패드 & 좌판) -->
-          <rect x="114" y="46" width="12" height="54" rx="5" fill="#0f172a"/>
-          <rect x="120" y="96" width="46" height="10" rx="4" fill="#0f172a"/>
-          <path d="M 138 106 L 138 138" stroke="#334155" stroke-width="6"/>
-          <!-- 상단 회전 암 -->
-          <path d="M 120 22 L 154 22 L 154 62" fill="none" stroke="#334155" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 사람 (핵심: 패드를 마주 보고 가슴을 패드에 대고 반대로 앉음!) -->
-          <circle cx="136" cy="40" r="9" fill="#2563eb"/>
-          <path d="M 138 51 L 138 90 L 114 92 L 106 134" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 팔을 뒤쪽(오른쪽)으로 벌리는 동작 -->
-          <path d="M 138 62 L 182 62" fill="none" stroke="#1d4ed8" stroke-width="6" stroke-linecap="round"/>
-          <!-- 뒤로 벌리는 화살표 -->
-          <path d="M 176 48 L 210 48" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-6)"/>
-          <!-- 강조 안내 라벨 (반대로 앉기!) -->
-          <rect x="150" y="12" width="154" height="32" rx="6" fill="#f3e8ff" stroke="#d8b4fe"/>
-          <text x="227" y="26" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6b21a8">★ 가슴을 패드에 대고</text>
-          <text x="227" y="39" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6b21a8">반대로 앉아 뒤로 벌리기!</text>
-        </svg>
-      `,
-      // 7. 백 익스텐션 / 로만 체어 (허리·코어 후면)
-      7: `
-        <svg viewBox="0 0 320 155" class="w-full h-auto block" role="img" aria-label="백 익스텐션 로만 체어 자세 일러스트">
-          <defs>
-            <marker id="arr-7" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/>
-            </marker>
-          </defs>
-          <line x1="20" y1="138" x2="300" y2="138" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-          <!-- 로만 체어 45도 프레임 -->
-          <path d="M 65 138 L 175 138" stroke="#1e293b" stroke-width="7" stroke-linecap="round"/>
-          <path d="M 85 138 L 152 78" stroke="#334155" stroke-width="7" stroke-linecap="round"/>
-          <path d="M 145 138 L 125 102" stroke="#334155" stroke-width="6" stroke-linecap="round"/>
-          <!-- 발목 고정 패드 & 골반/허벅지 패드 -->
-          <circle cx="84" cy="122" r="7" fill="#0f172a"/>
-          <rect x="136" y="66" width="24" height="14" rx="6" transform="rotate(-35 136 66)" fill="#0f172a"/>
-          <!-- 숙인 자세(점선 가이드) -->
-          <path d="M 150 68 L 184 96" stroke="#93c5fd" stroke-width="6" stroke-linecap="round" stroke-dasharray="4,4"/>
-          <circle cx="192" cy="103" r="7" fill="#93c5fd"/>
-          <!-- 올라온 일직선 자세(실선) -->
-          <path d="M 92 126 L 150 68 L 194 42" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
-          <circle cx="204" cy="36" r="9" fill="#2563eb"/>
-          <!-- 가슴에 모은 팔 -->
-          <path d="M 176 54 L 184 66" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
-          <!-- 올라오는 곡선 화살표 -->
-          <path d="M 212 92 Q 226 70 218 48" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-7)"/>
-          <!-- 안내 라벨 -->
-          <rect x="20" y="14" width="144" height="34" rx="6" fill="#fffbeb" stroke="#fde68a"/>
-          <text x="92" y="28" text-anchor="middle" font-size="10.5" font-weight="700" fill="#92400e">허리 과신전(꺾임) 금지!</text>
-          <text x="92" y="42" text-anchor="middle" font-size="10.5" font-weight="700" fill="#92400e">몸이 일직선까지만 올라오기</text>
-        </svg>
-      `,
-      // 8. 보라색 폼롤러 스트레칭 (마무리 이완)
-      8: `
-        <svg viewBox="0 0 320 155" class="w-full h-auto block" role="img" aria-label="보라색 폼롤러 스트레칭 일러스트">
-          <defs>
-            <marker id="arr-8" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-              <path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/>
-            </marker>
-          </defs>
-          <!-- 매트 & 바닥 -->
-          <line x1="20" y1="138" x2="300" y2="138" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
-          <rect x="35" y="132" width="250" height="5" rx="2" fill="#93c5fd"/>
-          <!-- 보라색 폼롤러 (종아리/허벅지 아래) -->
-          <circle cx="195" cy="121" r="11" fill="#7c3aed" stroke="#5b21b6" stroke-width="2"/>
-          <circle cx="195" cy="121" r="4" fill="#c4b5fd"/>
-          <!-- 사람 (앉아서 손으로 바닥 짚고 종아리/허벅지 문지르기) -->
-          <circle cx="105" cy="64" r="9" fill="#2563eb"/>
-          <path d="M 108 75 L 126 116 L 195 108 L 235 110" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
-          <!-- 바닥 짚은 팔 -->
-          <path d="M 112 82 L 94 128" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
-          <!-- 앞뒤 롤링 화살표 -->
-          <path d="M 174 94 L 216 94" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-start="url(#arr-8)" marker-end="url(#arr-8)"/>
-          <!-- 안내 라벨 -->
-          <rect x="135" y="14" width="160" height="34" rx="6" fill="#ecfdf5" stroke="#a7f3d0"/>
-          <text x="215" y="28" text-anchor="middle" font-size="10.5" font-weight="700" fill="#065f46">보라색 폼롤러로 천천히 롤링</text>
-          <text x="215" y="42" text-anchor="middle" font-size="10.5" font-weight="700" fill="#065f46">종아리 · 허벅지 바깥 · 상부 등</text>
-        </svg>
-      `
+      treadmill: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-tread" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="25" y1="134" x2="295" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <path d="M 55 128 L 225 122 L 225 131 L 55 134 Z" fill="#334155"/>
+          <path d="M 212 124 L 228 54 L 236 54 L 222 124 Z" fill="#1e293b"/>
+          <rect x="215" y="38" width="28" height="18" rx="3" fill="#0f172a" stroke="#475569" stroke-width="1.5"/>
+          <rect x="218" y="41" width="22" height="11" rx="1" fill="#38bdf8" opacity="0.8"/>
+          <path d="M 225 72 L 195 72" stroke="#334155" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="145" cy="36" r="10" fill="#2563eb"/>
+          <path d="M 145 48 L 142 82" stroke="#2563eb" stroke-width="8" stroke-linecap="round"/>
+          <path d="M 144 54 L 158 68 L 170 64" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 144 54 L 130 70 L 122 80" fill="none" stroke="#60a5fa" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 142 82 L 158 102 L 166 121" fill="none" stroke="#1d4ed8" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 142 82 L 126 104 L 112 122" fill="none" stroke="#60a5fa" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 90 108 L 118 108" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-tread)"/>
+          <rect x="20" y="12" width="124" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="82" y="27" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">가볍게 걷기 (관절 예열)</text>
+        </svg>`,
+      leg_press: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-lp" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <rect x="42" y="22" width="32" height="112" rx="3" fill="#1e293b"/>
+          <rect x="48" y="52" width="20" height="55" rx="1" fill="#475569"/>
+          <rect x="65" y="120" width="185" height="8" rx="3" fill="#334155"/>
+          <rect x="172" y="98" width="44" height="10" rx="4" fill="#0f172a"/>
+          <rect x="206" y="50" width="12" height="52" rx="5" fill="#0f172a"/>
+          <path d="M 192 108 L 192 120 M 212 102 L 212 120" stroke="#334155" stroke-width="5"/>
+          <rect x="94" y="58" width="10" height="58" rx="3" transform="rotate(-12 94 58)" fill="#1e293b"/>
+          <circle cx="195" cy="36" r="10" fill="#2563eb"/>
+          <path d="M 195 48 L 195 90 L 168 92" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 195 58 L 186 81 L 186 100" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 168 92 L 138 70 L 106 84" fill="none" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="105" cy="88" r="5" fill="#f97316"/>
+          <path d="M 155 56 L 116 56" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-lp)"/>
+          <rect x="85" y="12" width="150" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="160" y="27" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">무릎 95%만 펴기 · 뒤꿈치 힘</text>
+        </svg>`,
+      leg_curl: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-lc" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <rect x="38" y="22" width="32" height="112" rx="3" fill="#1e293b"/>
+          <rect x="44" y="54" width="20" height="50" rx="1" fill="#475569"/>
+          <path d="M 82 90 L 142 80 L 218 98" fill="none" stroke="#0f172a" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 105 88 L 105 134 M 195 94 L 195 134" stroke="#334155" stroke-width="6"/>
+          <circle cx="84" cy="70" r="9" fill="#2563eb"/>
+          <path d="M 94 74 L 142 70 L 185 84" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 102 74 L 94 98" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
+          <path d="M 185 84 L 214 50" fill="none" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round"/>
+          <circle cx="218" cy="52" r="7" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M 244 92 Q 246 62 228 44" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-lc)"/>
+          <rect x="92" y="12" width="156" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="170" y="27" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">허리 들림 방지 · 엉덩이 쪽 컬</text>
+        </svg>`,
+      leg_extension: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-le" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <rect x="42" y="22" width="32" height="112" rx="3" fill="#1e293b"/>
+          <rect x="48" y="54" width="20" height="50" rx="1" fill="#475569"/>
+          <rect x="96" y="48" width="12" height="50" rx="5" fill="#0f172a"/>
+          <rect x="102" y="92" width="52" height="10" rx="4" fill="#0f172a"/>
+          <path d="M 126 102 L 126 134" stroke="#334155" stroke-width="6"/>
+          <circle cx="118" cy="36" r="10" fill="#2563eb"/>
+          <path d="M 118 48 L 118 84 L 154 84" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 118 58 L 126 92" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
+          <path d="M 154 84 L 204 82" fill="none" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round"/>
+          <circle cx="198" cy="74" r="7" fill="#0f172a" stroke="#94a3b8" stroke-width="1.5"/>
+          <path d="M 176 120 Q 214 114 218 88" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-le)"/>
+          <rect x="128" y="12" width="154" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="205" y="27" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">올려서 1초 정지 · 천천히 내림</text>
+        </svg>`,
+      lat_pulldown: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-lat" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <rect x="215" y="30" width="32" height="104" rx="3" fill="#1e293b"/>
+          <rect x="221" y="58" width="20" height="50" rx="1" fill="#475569"/>
+          <path d="M 148 134 L 148 12 L 195 20" fill="none" stroke="#1e293b" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <line x1="148" y1="52" x2="215" y2="52" stroke="#334155" stroke-width="5"/>
+          <rect x="108" y="98" width="44" height="10" rx="4" fill="#0f172a"/>
+          <path d="M 130 108 L 130 134" stroke="#334155" stroke-width="6"/>
+          <rect x="132" y="76" width="24" height="11" rx="5" fill="#0f172a" stroke="#64748b" stroke-width="1"/>
+          <line x1="168" y1="18" x2="168" y2="44" stroke="#64748b" stroke-width="2" stroke-dasharray="3,2"/>
+          <line x1="136" y1="44" x2="188" y2="44" stroke="#0f172a" stroke-width="4" stroke-linecap="round"/>
+          <circle cx="128" cy="44" r="9" fill="#2563eb"/>
+          <path d="M 128 55 L 126 91 L 154 92 L 154 130" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 128 61 L 144 46" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
+          <path d="M 132 61 L 176 46" fill="none" stroke="#60a5fa" stroke-width="5" stroke-linecap="round"/>
+          <path d="M 196 30 L 196 64" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-lat)"/>
+          <rect x="18" y="12" width="118" height="32" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="77" y="26" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e40af">날개뼈 아래로 내리고</text>
+          <text x="77" y="39" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e40af">쇄골 쪽으로 당기기</text>
+        </svg>`,
+      chest_press: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-cp" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <rect x="44" y="24" width="32" height="110" rx="3" fill="#1e293b"/>
+          <rect x="50" y="54" width="20" height="50" rx="1" fill="#475569"/>
+          <rect x="114" y="42" width="12" height="54" rx="5" fill="#0f172a"/>
+          <rect x="120" y="92" width="44" height="10" rx="4" fill="#0f172a"/>
+          <path d="M 138 102 L 138 134" stroke="#334155" stroke-width="6"/>
+          <path d="M 120 20 L 166 20 L 166 62" fill="none" stroke="#334155" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="136" cy="36" r="9" fill="#2563eb"/>
+          <path d="M 134 47 L 134 86 L 164 86 L 168 130" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 136 58 L 166 60" fill="none" stroke="#1d4ed8" stroke-width="6" stroke-linecap="round"/>
+          <path d="M 176 60 L 212 60" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-cp)"/>
+          <rect x="148" y="12" width="150" height="32" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="223" y="26" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e40af">손잡이를 가슴 중앙 높이</text>
+          <text x="223" y="39" text-anchor="middle" font-size="10.5" font-weight="700" fill="#1e40af">어깨 힘 빼고 앞으로 밀기</text>
+        </svg>`,
+      rear_delt: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-rd" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <rect x="114" y="42" width="12" height="54" rx="5" fill="#0f172a"/>
+          <rect x="120" y="92" width="46" height="10" rx="4" fill="#0f172a"/>
+          <path d="M 138 102 L 138 134" stroke="#334155" stroke-width="6"/>
+          <path d="M 120 18 L 154 18 L 154 58" fill="none" stroke="#334155" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="136" cy="36" r="9" fill="#2563eb"/>
+          <path d="M 138 47 L 138 86 L 114 88 L 106 130" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 138 58 L 182 58" fill="none" stroke="#1d4ed8" stroke-width="6" stroke-linecap="round"/>
+          <path d="M 176 44 L 210 44" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-rd)"/>
+          <rect x="150" y="10" width="154" height="32" rx="6" fill="#f3e8ff" stroke="#d8b4fe"/>
+          <text x="227" y="24" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6b21a8">★ 가슴을 패드에 대고</text>
+          <text x="227" y="37" text-anchor="middle" font-size="10.5" font-weight="800" fill="#6b21a8">반대로 앉아 뒤로 벌리기!</text>
+        </svg>`,
+      back_extension: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-be" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <path d="M 65 134 L 175 134" stroke="#1e293b" stroke-width="7" stroke-linecap="round"/>
+          <path d="M 85 134 L 152 74" stroke="#334155" stroke-width="7" stroke-linecap="round"/>
+          <path d="M 145 134 L 125 98" stroke="#334155" stroke-width="6" stroke-linecap="round"/>
+          <circle cx="84" cy="118" r="7" fill="#0f172a"/>
+          <rect x="136" y="62" width="24" height="14" rx="6" transform="rotate(-35 136 62)" fill="#0f172a"/>
+          <path d="M 150 64 L 184 92" stroke="#93c5fd" stroke-width="6" stroke-linecap="round" stroke-dasharray="4,4"/>
+          <circle cx="192" cy="99" r="7" fill="#93c5fd"/>
+          <path d="M 92 122 L 150 64 L 194 38" fill="none" stroke="#2563eb" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+          <circle cx="204" cy="32" r="9" fill="#2563eb"/>
+          <path d="M 176 50 L 184 62" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
+          <path d="M 212 88 Q 226 66 218 44" fill="none" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-be)"/>
+          <rect x="20" y="12" width="144" height="32" rx="6" fill="#fffbeb" stroke="#fde68a"/>
+          <text x="92" y="26" text-anchor="middle" font-size="10.5" font-weight="700" fill="#92400e">허리 과신전(꺾임) 금지!</text>
+          <text x="92" y="39" text-anchor="middle" font-size="10.5" font-weight="700" fill="#92400e">몸이 일직선까지만 올라오기</text>
+        </svg>`,
+      foam_roller: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-fr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <rect x="35" y="128" width="250" height="5" rx="2" fill="#93c5fd"/>
+          <circle cx="195" cy="117" r="11" fill="#7c3aed" stroke="#5b21b6" stroke-width="2"/>
+          <circle cx="195" cy="117" r="4" fill="#c4b5fd"/>
+          <circle cx="105" cy="60" r="9" fill="#2563eb"/>
+          <path d="M 108 71 L 126 112 L 195 104 L 235 106" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 112 78 L 94 124" fill="none" stroke="#1d4ed8" stroke-width="5" stroke-linecap="round"/>
+          <path d="M 174 90 L 216 90" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-start="url(#arr-fr)" marker-end="url(#arr-fr)"/>
+          <rect x="135" y="12" width="160" height="32" rx="6" fill="#ecfdf5" stroke="#a7f3d0"/>
+          <text x="215" y="26" text-anchor="middle" font-size="10.5" font-weight="700" fill="#065f46">보라색 폼롤러로 천천히 롤링</text>
+          <text x="215" y="39" text-anchor="middle" font-size="10.5" font-weight="700" fill="#065f46">종아리 · 허벅지 바깥 · 상부 등</text>
+        </svg>`,
+      cable_row: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-cr" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <rect x="40" y="20" width="32" height="114" rx="3" fill="#1e293b"/>
+          <rect x="120" y="104" width="90" height="12" rx="4" fill="#0f172a"/>
+          <path d="M 135 116 L 135 134 M 195 116 L 195 134" stroke="#334155" stroke-width="6"/>
+          <line x1="72" y1="96" x2="145" y2="82" stroke="#64748b" stroke-width="2.5"/>
+          <circle cx="165" cy="44" r="9" fill="#2563eb"/>
+          <path d="M 165 55 L 165 98 L 110 102" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 165 65 L 145 82" fill="none" stroke="#1d4ed8" stroke-width="6" stroke-linecap="round"/>
+          <path d="M 135 66 L 175 66" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-end="url(#arr-cr)"/>
+          <rect x="115" y="12" width="175" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="202" y="27" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">가슴 펴고 배꼽 쪽으로 당기기</text>
+        </svg>`,
+      smith_squat: `
+        <svg viewBox="0 0 320 150" class="w-full h-auto block">
+          <defs><marker id="arr-sq" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="#f97316"/></marker></defs>
+          <line x1="20" y1="134" x2="300" y2="134" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round"/>
+          <rect x="110" y="14" width="8" height="120" fill="#1e293b"/>
+          <rect x="202" y="14" width="8" height="120" fill="#1e293b"/>
+          <line x1="85" y1="54" x2="235" y2="54" stroke="#475569" stroke-width="5" stroke-linecap="round"/>
+          <circle cx="160" cy="36" r="9" fill="#2563eb"/>
+          <path d="M 160 47 L 154 88 L 136 106 L 142 132" fill="none" stroke="#2563eb" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 154 88 L 176 106 L 172 132" fill="none" stroke="#1d4ed8" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="M 248 48 L 248 86" stroke="#f97316" stroke-width="3" stroke-linecap="round" marker-start="url(#arr-sq)" marker-end="url(#arr-sq)"/>
+          <rect x="18" y="12" width="135" height="22" rx="6" fill="#eff6ff" stroke="#bfdbfe"/>
+          <text x="85" y="27" text-anchor="middle" font-size="11" font-weight="700" fill="#1e40af">엉덩이 뒤로 빼며 앉기</text>
+        </svg>`
     };
 
-    // 운동 루틴 데이터 정의 (0번 ~ 8번)
-    const workoutData = [
-      {
-        step: 0,
-        name: "트레드밀",
-        engName: "Treadmill",
-        target: "워밍업",
-        targetColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
-        sets: 1,
-        setLabels: ["워밍업 완료"],
-        prescription: "5~7분 · 휴식 없음",
-        restSec: 0,
-        hasWeight: false,
-        cue: "가볍게 걷기 (관절 예열 및 심박수 올리기)"
-      },
-      {
-        step: 1,
-        name: "시티드 레그 프레스",
-        engName: "Seated Leg Press",
-        target: "하체 전반",
-        targetColor: "bg-blue-50 text-blue-700 border-blue-200",
-        sets: 3,
-        setLabels: ["1세트", "2세트", "3세트"],
-        prescription: "3세트 × 15회 · 휴식 60초",
-        restSec: 60,
-        hasWeight: true,
-        cue: "발판을 밀 때 무릎을 완전히 펴지 말고 95%만 펴기"
-      },
-      {
-        step: 2,
-        name: "라잉 레그 컬",
-        engName: "Lying Leg Curl",
-        target: "햄스트링",
-        targetColor: "bg-blue-50 text-blue-700 border-blue-200",
-        sets: 3,
-        setLabels: ["1세트", "2세트", "3세트"],
-        prescription: "3세트 × 15회 · 휴식 60초",
-        restSec: 60,
-        hasWeight: true,
-        cue: "허리가 들리지 않게 복부에 힘을 주고 엉덩이 쪽으로 당기기"
-      },
-      {
-        step: 3,
-        name: "레그 익스텐션",
-        engName: "Leg Extension",
-        target: "허벅지 앞쪽",
-        targetColor: "bg-blue-50 text-blue-700 border-blue-200",
-        sets: 3,
-        setLabels: ["1세트", "2세트", "3세트"],
-        prescription: "3세트 × 15회 · 휴식 60초",
-        restSec: 60,
-        hasWeight: true,
-        cue: "무릎 보호 핵심! 올릴 때 1초 멈췄다가 천천히 내리기"
-      },
-      {
-        step: 4,
-        name: "랫 풀다운 머신",
-        engName: "Lat Pulldown Machine",
-        target: "등",
-        targetColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
-        sets: 3,
-        setLabels: ["1세트", "2세트", "3세트"],
-        prescription: "3세트 × 12~15회 · 휴식 60초",
-        restSec: 60,
-        hasWeight: true,
-        cue: "어깨가 으쓱 올라가지 않게 날개뼈를 먼저 아래로 내린 후 당기기"
-      },
-      {
-        step: 5,
-        name: "체스트 프레스 또는 펙 덱 플라이",
-        engName: "Chest Press / Pec Deck Fly",
-        target: "가슴",
-        targetColor: "bg-indigo-50 text-indigo-700 border-indigo-200",
-        sets: 3,
-        setLabels: ["1세트", "2세트", "3세트"],
-        prescription: "3세트 × 12~15회 · 휴식 60초",
-        restSec: 60,
-        hasWeight: true,
-        cue: "어깨 앞쪽이 찝히지 않도록 손잡이 높이를 가슴 중앙에 맞추기"
-      },
-      {
-        step: 6,
-        name: "리어 델트 플라이",
-        engName: "Rear Delt Fly",
-        target: "후면 어깨·상부 등",
-        targetColor: "bg-violet-50 text-violet-700 border-violet-200",
-        sets: 3,
-        setLabels: ["1세트", "2세트", "3세트"],
-        prescription: "3세트 × 15회 · 휴식 45초",
-        restSec: 45,
-        hasWeight: true,
-        cue: "펙 덱 플라이 머신에 반대로 앉아 팔을 뒤로 벌리며 굽은 등 펴기"
-      },
-      {
-        step: 7,
-        name: "백 익스텐션",
-        engName: "Back Extension",
-        target: "허리·코어 후면",
-        targetColor: "bg-amber-50 text-amber-800 border-amber-200",
-        sets: 3,
-        setLabels: ["1세트", "2세트", "3세트"],
-        prescription: "3세트 × 12~15회 · 휴식 45초",
-        restSec: 45,
-        hasWeight: false,
-        cue: "상체를 과하게 뒤로 젖히지 말고 몸이 일직선이 될 때까지만 올라오기"
-      },
-      {
-        step: 8,
-        name: "마무리 스트레칭",
-        engName: "Foam Roller Stretching (보라색 폼롤러)",
-        target: "마무리 스트레칭",
-        targetColor: "bg-emerald-50 text-emerald-700 border-emerald-200",
-        sets: 1,
-        setLabels: ["이완 완료"],
-        prescription: "5분 · 휴식 없음",
-        restSec: 0,
-        hasWeight: false,
-        cue: "종아리, 허벅지 바깥쪽(장경인대), 상부 등 문질러 이완하기"
-      }
-    ];
-
-    // 로컬 스토리지 상태 관리
-    const STORAGE_KEY = 'apt_gym_routine_v1';
-    let state = {
-      completed: {}, // 예: { "1-0": true, "1-1": false }
-      weights: {},   // 예: { "1": "40", "2": "25" }
-      soundOn: true
+    // 기본 루틴 데이터 (주 2회 지하 헬스장 전신 순환 루틴)
+    const defaultRoutine = {
+      title: "주 2회 지하 헬스장 전신 루틴",
+      subtitle: "기구 그림을 보고 순서대로 따라 하세요 · 약 45~50분",
+      exercises: [
+        { step: 0, iconKey: "treadmill", name: "트레드밀", engName: "Treadmill", target: "워밍업", targetColor: "bg-emerald-50 text-emerald-700 border-emerald-200", sets: 1, setLabels: ["워밍업 완료"], prescription: "5~7분 · 휴식 없음", restSec: 0, hasWeight: false, cue: "가볍게 걷기 (관절 예열 및 심박수 올리기)" },
+        { step: 1, iconKey: "leg_press", name: "시티드 레그 프레스", engName: "Seated Leg Press", target: "하체 전반", targetColor: "bg-blue-50 text-blue-700 border-blue-200", sets: 3, setLabels: ["1세트", "2세트", "3세트"], prescription: "3세트 × 15회 · 휴식 60초", restSec: 60, hasWeight: true, cue: "발판을 밀 때 무릎을 완전히 펴지 말고 95%만 펴기" },
+        { step: 2, iconKey: "leg_curl", name: "라잉 레그 컬", engName: "Lying Leg Curl", target: "햄스트링", targetColor: "bg-blue-50 text-blue-700 border-blue-200", sets: 3, setLabels: ["1세트", "2세트", "3세트"], prescription: "3세트 × 15회 · 휴식 60초", restSec: 60, hasWeight: true, cue: "허리가 들리지 않게 복부에 힘을 주고 엉덩이 쪽으로 당기기" },
+        { step: 3, iconKey: "leg_extension", name: "레그 익스텐션", engName: "Leg Extension", target: "허벅지 앞쪽", targetColor: "bg-blue-50 text-blue-700 border-blue-200", sets: 3, setLabels: ["1세트", "2세트", "3세트"], prescription: "3세트 × 15회 · 휴식 60초", restSec: 60, hasWeight: true, cue: "무릎 보호 핵심! 올릴 때 1초 멈췄다가 천천히 내리기" },
+        { step: 4, iconKey: "lat_pulldown", name: "랫 풀다운 머신", engName: "Lat Pulldown Machine", target: "등", targetColor: "bg-indigo-50 text-indigo-700 border-indigo-200", sets: 3, setLabels: ["1세트", "2세트", "3세트"], prescription: "3세트 × 12~15회 · 휴식 60초", restSec: 60, hasWeight: true, cue: "어깨가 으쓱 올라가지 않게 날개뼈를 먼저 아래로 내린 후 당기기" },
+        { step: 5, iconKey: "chest_press", name: "체스트 프레스 / 펙 덱 플라이", engName: "Chest Press / Pec Deck Fly", target: "가슴", targetColor: "bg-indigo-50 text-indigo-700 border-indigo-200", sets: 3, setLabels: ["1세트", "2세트", "3세트"], prescription: "3세트 × 12~15회 · 휴식 60초", restSec: 60, hasWeight: true, cue: "어깨 앞쪽이 찝히지 않도록 손잡이 높이를 가슴 중앙에 맞추기" },
+        { step: 6, iconKey: "rear_delt", name: "리어 델트 플라이", engName: "Rear Delt Fly", target: "후면 어깨·상부 등", targetColor: "bg-violet-50 text-violet-700 border-violet-200", sets: 3, setLabels: ["1세트", "2세트", "3세트"], prescription: "3세트 × 15회 · 휴식 45초", restSec: 45, hasWeight: true, cue: "펙 덱 플라이 머신에 반대로 앉아 팔을 뒤로 벌리며 굽은 등 펴기" },
+        { step: 7, iconKey: "back_extension", name: "백 익스텐션", engName: "Back Extension", target: "허리·코어 후면", targetColor: "bg-amber-50 text-amber-800 border-amber-200", sets: 3, setLabels: ["1세트", "2세트", "3세트"], prescription: "3세트 × 12~15회 · 휴식 45초", restSec: 45, hasWeight: false, cue: "상체를 과하게 뒤로 젖히지 말고 몸이 일직선이 될 때까지만 올라오기" },
+        { step: 8, iconKey: "foam_roller", name: "마무리 스트레칭", engName: "Foam Roller Stretching (보라색 폼롤러)", target: "마무리 스트레칭", targetColor: "bg-emerald-50 text-emerald-700 border-emerald-200", sets: 1, setLabels: ["이완 완료"], prescription: "5분 · 휴식 없음", restSec: 0, hasWeight: false, cue: "종아리, 허벅지 바깥쪽(장경인대), 상부 등 문질러 이완하기" }
+      ]
     };
 
-    function loadState() {
+    const STORAGE_KEY = 'apt_gym_github_app_v1';
+    let appState = {
+      routine: defaultRoutine,
+      completed: {},
+      weights: {},
+      soundOn: true,
+      github: { owner: '', repo: '', token: '' },
+      logs: []
+    };
+
+    function loadAppState() {
       try {
         const saved = localStorage.getItem(STORAGE_KEY);
         if (saved) {
           const parsed = JSON.parse(saved);
-          state = { ...state, ...parsed };
+          appState = {
+            ...appState,
+            ...parsed,
+            routine: parsed.routine && parsed.routine.exercises ? parsed.routine : defaultRoutine,
+            github: parsed.github || { owner: '', repo: '', token: '' },
+            logs: Array.isArray(parsed.logs) ? parsed.logs : []
+          };
         }
       } catch (e) {
-        console.error("상태 불러오기 실패:", e);
+        console.error("로컬 데이터 로드 오류:", e);
       }
     }
 
-    function saveState() {
+    function saveAppState() {
       try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
       } catch (e) {
-        console.error("상태 저장 실패:", e);
+        console.error("로컬 데이터 저장 오류:", e);
       }
+    }
+
+    // 탭 전환
+    function switchTab(tabName) {
+      ['workout', 'history', 'routine', 'settings'].forEach(t => {
+        document.getElementById(`view-${t}`).classList.toggle('hidden', t !== tabName);
+        const btn = document.getElementById(`tab-${t}`);
+        if (t === tabName) {
+          btn.className = "tab-btn py-1.5 rounded-lg text-xs font-extrabold bg-white text-blue-700 shadow-xs transition";
+        } else {
+          btn.className = "tab-btn py-1.5 rounded-lg text-xs font-bold text-slate-600 hover:text-slate-900 transition";
+        }
+      });
+      document.getElementById('workout-subheader').classList.toggle('hidden', tabName !== 'workout');
+      if (tabName === 'history') renderHistory();
+    }
+
+    // 직전 기록 찾기 (기구명 기준)
+    function getLastRecordText(exerciseName) {
+      for (let i = 0; i < appState.logs.length; i++) {
+        const log = appState.logs[i];
+        if (!log.items) continue;
+        const found = log.items.find(item => item.name === exerciseName && (item.weight || item.completedSets > 0));
+        if (found) {
+          const w = found.weight ? `${found.weight}kg` : '맨몸';
+          return `직전(${log.date}): ${w} · ${found.completedSets}/${found.totalSets}세트`;
+        }
+      }
+      return '';
     }
 
     // 루틴 카드 렌더링
     function renderRoutine() {
+      document.getElementById('routine-title').textContent = appState.routine.title;
+      document.getElementById('routine-subtitle').textContent = appState.routine.subtitle;
+
       const container = document.getElementById('routine-container');
       container.innerHTML = '';
 
-      workoutData.forEach(item => {
-        // 해당 운동의 모든 세트가 완료되었는지 확인
+      appState.routine.exercises.forEach(item => {
         let allDone = true;
         for (let i = 0; i < item.sets; i++) {
-          if (!state.completed[`${item.step}-${i}`]) {
+          if (!appState.completed[`${item.step}-${i}`]) {
             allDone = false;
             break;
           }
@@ -616,32 +542,29 @@
 
         const card = document.createElement('article');
         card.className = `rounded-2xl p-4 border transition-all duration-200 shadow-xs ${
-          allDone 
-            ? 'bg-slate-100/80 border-slate-200/80 opacity-85' 
-            : 'bg-white border-slate-200/90 hover:border-blue-300'
+          allDone ? 'bg-slate-100/80 border-slate-200/80 opacity-85' : 'bg-white border-slate-200/90 hover:border-blue-300'
         }`;
 
-        // 세트 체크 버튼 HTML 생성
         let setsHtml = '';
         for (let i = 0; i < item.sets; i++) {
           const key = `${item.step}-${i}`;
-          const isChecked = !!state.completed[key];
+          const isChecked = !!appState.completed[key];
+          const label = (item.setLabels && item.setLabels[i]) ? item.setLabels[i] : `${i + 1}세트`;
           setsHtml += `
             <button 
-              onclick="toggleSet(${item.step}, ${i}, ${item.restSec})"
+              onclick="toggleSet(${item.step}, ${i}, ${item.restSec || 0})"
               class="flex-1 min-w-[72px] py-2 px-2.5 rounded-xl text-xs font-bold border flex items-center justify-center gap-1.5 transition-all active:scale-95 ${
                 isChecked
                   ? 'bg-blue-600 border-blue-600 text-white shadow-xs'
                   : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-blue-50 hover:border-blue-200'
               }">
               <span class="text-[13px]">${isChecked ? '✓' : '○'}</span>
-              <span class="${isChecked ? 'line-through opacity-90' : ''}">${item.setLabels[i]}</span>
+              <span class="${isChecked ? 'line-through opacity-90' : ''}">${label}</span>
             </button>
           `;
         }
 
-        // 무게 입력 필드 HTML (기구 운동만 표시)
-        const weightVal = state.weights[item.step] || '';
+        const weightVal = appState.weights[item.step] || '';
         const weightInputHtml = item.hasWeight ? `
           <div class="flex items-center gap-1 bg-slate-50 border border-slate-200 rounded-xl px-2.5 py-1.5 shrink-0">
             <input 
@@ -650,40 +573,32 @@
               placeholder="무게"
               value="${weightVal}"
               onchange="updateWeight(${item.step}, this.value)"
-              class="w-10 text-right text-xs font-bold text-slate-800 bg-transparent focus:outline-none"
-              aria-label="${item.name} 무게 입력"
+              class="w-11 text-right text-xs font-bold text-slate-800 bg-transparent focus:outline-none"
             />
             <span class="text-[11px] font-semibold text-slate-400">kg</span>
           </div>
         ` : '';
 
+        const lastRecord = getLastRecordText(item.name);
+        const svgHtml = machineSVGs[item.iconKey] || '';
+
         card.innerHTML = `
-          <!-- 상단: 스텝 번호, 운동명, 타겟 배지 -->
           <div class="flex items-start justify-between gap-2">
             <div class="flex items-start gap-2.5">
               <span class="w-7 h-7 rounded-xl flex items-center justify-center text-xs font-extrabold shrink-0 mt-0.5 ${
                 allDone ? 'bg-slate-300 text-slate-600' : 'bg-blue-600 text-white shadow-xs'
-              }">
-                ${item.step}
-              </span>
+              }">${item.step}</span>
               <div>
-                <h3 class="text-[15px] font-extrabold leading-snug ${allDone ? 'text-slate-500 line-through' : 'text-slate-900'}">
-                  ${item.name}
-                </h3>
-                <p class="text-[11px] font-medium text-slate-400">${item.engName}</p>
+                <h3 class="text-[15px] font-extrabold leading-snug ${allDone ? 'text-slate-500 line-through' : 'text-slate-900'}">${item.name}</h3>
+                <p class="text-[11px] font-medium text-slate-400">${item.engName || ''}</p>
+                ${lastRecord ? `<p class="text-[11px] font-bold text-emerald-600 mt-0.5">📌 ${lastRecord}</p>` : ''}
               </div>
             </div>
-            <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold border shrink-0 ${item.targetColor}">
-              ${item.target}
-            </span>
+            <span class="px-2.5 py-1 rounded-lg text-[11px] font-bold border shrink-0 ${item.targetColor || 'bg-blue-50 text-blue-700 border-blue-200'}">${item.target}</span>
           </div>
 
-          <!-- 기구 & 자세 일러스트 박스 -->
-          <div class="mt-3 bg-slate-50/90 border border-slate-200/80 rounded-xl p-2 overflow-hidden">
-            ${machineSVGs[item.step] || ''}
-          </div>
+          ${svgHtml ? `<div class="mt-3 bg-slate-50/90 border border-slate-200/80 rounded-xl p-2 overflow-hidden">${svgHtml}</div>` : ''}
 
-          <!-- 중단: 세트/횟수 정보 및 무게 기록 -->
           <div class="mt-3 flex items-center justify-between gap-2">
             <div class="inline-flex items-center gap-1.5 text-xs font-bold text-slate-700 bg-slate-100/90 px-2.5 py-1.5 rounded-lg">
               <span>📋 ${item.prescription}</span>
@@ -691,16 +606,12 @@
             ${weightInputHtml}
           </div>
 
-          <!-- 핵심 포인트 (Form Cue) -->
           <div class="mt-2.5 bg-blue-50/60 border border-blue-100 rounded-xl px-3 py-2 text-xs text-slate-700 leading-relaxed flex items-start gap-1.5">
             <span class="text-blue-600 font-extrabold shrink-0">💡 포인트:</span>
             <span class="font-medium">${item.cue}</span>
           </div>
 
-          <!-- 하단: 인터랙티브 세트 체크 버튼 -->
-          <div class="mt-3 flex flex-wrap gap-2">
-            ${setsHtml}
-          </div>
+          <div class="mt-3 flex flex-wrap gap-2">${setsHtml}</div>
         `;
 
         container.appendChild(card);
@@ -709,74 +620,340 @@
       updateProgress();
     }
 
-    // 세트 토글 및 자동 휴식 타이머 연동
     function toggleSet(step, setIndex, restSec) {
       const key = `${step}-${setIndex}`;
-      const willCheck = !state.completed[key];
-      state.completed[key] = willCheck;
-      saveState();
+      const willCheck = !appState.completed[key];
+      appState.completed[key] = willCheck;
+      saveAppState();
       renderRoutine();
 
-      // 세트를 완료 체크했고, 아직 마지막 세트가 아니며 휴식 시간이 지정된 경우 자동으로 타이머 시작 제안/실행
-      const item = workoutData.find(d => d.step === step);
+      const item = appState.routine.exercises.find(d => d.step === step);
       if (willCheck && restSec > 0) {
         startTimer(restSec);
-        showToast(`${item.name} ${setIndex + 1}세트 완료! ${restSec}초 휴식 타이머 시작`);
+        showToast(`${item.name} ${setIndex + 1}세트 완료! ${restSec}초 휴식`);
       }
     }
 
-    // 무게 기록 업데이트
     function updateWeight(step, value) {
-      state.weights[step] = value;
-      saveState();
-      if (value) {
-        showToast(`${value}kg 기록이 저장되었습니다.`);
-      }
+      appState.weights[step] = value;
+      saveAppState();
+      if (value) showToast(`${value}kg 무게가 임시 저장되었습니다.`);
     }
 
-    // 진행률 업데이트
     function updateProgress() {
       let totalSets = 0;
       let completedSets = 0;
-
-      workoutData.forEach(item => {
+      appState.routine.exercises.forEach(item => {
         totalSets += item.sets;
         for (let i = 0; i < item.sets; i++) {
-          if (state.completed[`${item.step}-${i}`]) {
-            completedSets++;
-          }
+          if (appState.completed[`${item.step}-${i}`]) completedSets++;
         }
       });
-
       const pct = totalSets > 0 ? Math.round((completedSets / totalSets) * 100) : 0;
       document.getElementById('progress-bar').style.width = `${pct}%`;
       document.getElementById('progress-text').textContent = `${pct}% (${completedSets}/${totalSets})`;
     }
 
-    // 휴식 타이머 로직
+    // UTF-8 안전 Base64 인코딩/디코딩 (한글 커밋용)
+    function utf8ToBase64(str) {
+      const bytes = new TextEncoder().encode(str);
+      let bin = '';
+      bytes.forEach(b => bin += String.fromCharCode(b));
+      return btoa(bin);
+    }
+
+    function base64ToUtf8(b64) {
+      const bin = atob(b64.replace(/\s/g, ''));
+      const bytes = new Uint8Array(bin.length);
+      for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+      return new TextDecoder().decode(bytes);
+    }
+
+    function updateSyncBadge() {
+      const badge = document.getElementById('sync-badge');
+      const { owner, repo, token } = appState.github;
+      if (owner && repo && token) {
+        badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200";
+        badge.textContent = `🟢 깃허브 연동됨 (${owner}/${repo})`;
+      } else {
+        badge.className = "inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200";
+        badge.textContent = "⚪ 깃허브 미연동 (⚙️ 탭에서 설정)";
+      }
+    }
+
+    // 깃허브 설정 저장
+    async function saveGitHubSettings() {
+      const owner = document.getElementById('gh-owner').value.trim();
+      const repo = document.getElementById('gh-repo').value.trim();
+      const token = document.getElementById('gh-token').value.trim();
+
+      appState.github = { owner, repo, token };
+      saveAppState();
+      updateSyncBadge();
+
+      if (owner && repo && token) {
+        showToast("설정 저장 완료! 깃허브 기록을 불러오는 중...");
+        await fetchLogsFromGitHub(true);
+      } else {
+        showToast("설정이 저장되었습니다.");
+      }
+    }
+
+    // GitHub에서 workout_logs.json 불러오기
+    async function fetchLogsFromGitHub(notify = false) {
+      const { owner, repo, token } = appState.github;
+      if (!owner || !repo || !token) {
+        if (notify) showToast("⚠️ 먼저 ⚙️ 깃허브 탭에서 아이디, 저장소, 토큰을 입력해 주세요.");
+        return null;
+      }
+
+      const url = `https://api.github.com/repos/${owner}/${repo}/contents/workout_logs.json`;
+      try {
+        const res = await fetch(url, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json'
+          },
+          cache: 'no-store'
+        });
+
+        if (res.status === 404) {
+          if (notify) showToast("✅ 연결 성공! 아직 저장된 기록 파일이 없어 첫 운동 저장 시 자동 생성됩니다.");
+          return { sha: null, logs: appState.logs };
+        }
+
+        if (!res.ok) {
+          throw new Error(`HTTP ${res.status}`);
+        }
+
+        const data = await res.json();
+        const decoded = base64ToUtf8(data.content);
+        const parsedLogs = JSON.parse(decoded);
+        if (Array.isArray(parsedLogs)) {
+          appState.logs = parsedLogs;
+          saveAppState();
+          renderRoutine();
+          renderHistory();
+        }
+        if (notify) showToast(`✅ 깃허브에서 총 ${appState.logs.length}건의 운동 일지를 불러왔습니다!`);
+        return { sha: data.sha, logs: appState.logs };
+      } catch (err) {
+        console.error(err);
+        if (notify) showToast(`❌ 깃허브 연결 실패 (${err.message}). 아이디·저장소·토큰 권한을 확인해 주세요.`);
+        return null;
+      }
+    }
+
+    // 오늘 운동 결과를 로컬 + GitHub에 커밋 저장
+    async function saveWorkoutToGitHub() {
+      const now = new Date();
+      const dateStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+      const timeStr = `${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')}`;
+      const memo = document.getElementById('workout-memo').value.trim();
+
+      const items = appState.routine.exercises.map(ex => {
+        let completedSets = 0;
+        for (let i = 0; i < ex.sets; i++) {
+          if (appState.completed[`${ex.step}-${i}`]) completedSets++;
+        }
+        return {
+          name: ex.name,
+          target: ex.target,
+          weight: appState.weights[ex.step] || '',
+          completedSets,
+          totalSets: ex.sets
+        };
+      });
+
+      const totalDone = items.reduce((acc, cur) => acc + cur.completedSets, 0);
+      if (totalDone === 0) {
+        showToast("⚠️ 완료 체크된 세트가 없습니다. 최소 1세트 이상 체크해 주세요!");
+        return;
+      }
+
+      const newEntry = {
+        id: Date.now(),
+        date: dateStr,
+        time: timeStr,
+        routineTitle: appState.routine.title,
+        memo,
+        items
+      };
+
+      const btn = document.getElementById('save-github-btn');
+      btn.disabled = true;
+      btn.textContent = "⏳ 저장 중...";
+
+      const { owner, repo, token } = appState.github;
+      if (!owner || !repo || !token) {
+        // 깃허브 미연동 시 브라우저에만 저장
+        appState.logs.unshift(newEntry);
+        saveAppState();
+        renderHistory();
+        btn.disabled = false;
+        btn.textContent = "💾 오늘 운동 완료 & 깃허브에 기록 저장";
+        showToast("📱 브라우저 운동 일지에 저장되었습니다! (깃허브 연동 시 자동 백업됩니다)");
+        return;
+      }
+
+      try {
+        // 최신 sha 및 기존 로그 조회
+        const remote = await fetchLogsFromGitHub(false);
+        const currentLogs = remote && Array.isArray(remote.logs) ? remote.logs : appState.logs;
+        const updatedLogs = [newEntry, ...currentLogs];
+
+        const url = `https://api.github.com/repos/${owner}/${repo}/contents/workout_logs.json`;
+        const body = {
+          message: `Workout log: ${dateStr} (${appState.routine.title})`,
+          content: utf8ToBase64(JSON.stringify(updatedLogs, null, 2))
+        };
+        if (remote && remote.sha) {
+          body.sha = remote.sha;
+        }
+
+        const putRes = await fetch(url, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Accept': 'application/vnd.github+json',
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(body)
+        });
+
+        if (!putRes.ok) {
+          throw new Error(`HTTP ${putRes.status}`);
+        }
+
+        appState.logs = updatedLogs;
+        document.getElementById('workout-memo').value = '';
+        saveAppState();
+        renderRoutine();
+        renderHistory();
+        showToast("🎉 오늘 운동 기록이 GitHub에 성공적으로 커밋되었습니다!");
+      } catch (err) {
+        console.error(err);
+        appState.logs.unshift(newEntry);
+        saveAppState();
+        showToast(`⚠️ 깃허브 업로드 실패(${err.message})로 핸드폰에 임시 저장했습니다.`);
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "💾 오늘 운동 완료 & 깃허브에 기록 저장";
+      }
+    }
+
+    // 운동 일지 리스트 렌더링
+    function renderHistory() {
+      const container = document.getElementById('history-list');
+      if (!appState.logs || appState.logs.length === 0) {
+        container.innerHTML = `
+          <div class="bg-white border border-slate-200 rounded-2xl p-6 text-center text-xs text-slate-400">
+            아직 저장된 운동 일지가 없습니다.<br>오늘 운동을 마친 후 하단의 <strong>[기록 저장]</strong> 버튼을 눌러보세요!
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = appState.logs.map(log => {
+        const doneItems = (log.items || []).filter(i => i.completedSets > 0);
+        const rowsHtml = doneItems.map(i => `
+          <div class="flex items-center justify-between py-1.5 border-b border-slate-100 last:border-0 text-xs">
+            <span class="font-bold text-slate-800">${i.name}</span>
+            <span class="font-semibold text-blue-700">
+              ${i.weight ? `${i.weight}kg · ` : ''}${i.completedSets}/${i.totalSets}세트
+            </span>
+          </div>
+        `).join('');
+
+        return `
+          <article class="bg-white border border-slate-200 rounded-2xl p-4 shadow-xs">
+            <div class="flex items-center justify-between border-b border-slate-100 pb-2 mb-2">
+              <div>
+                <span class="text-xs font-extrabold text-blue-700">📅 ${log.date} (${log.time || ''})</span>
+                <h3 class="text-sm font-extrabold text-slate-900 mt-0.5">${log.routineTitle || '운동 기록'}</h3>
+              </div>
+              <span class="px-2 py-1 rounded-lg bg-emerald-50 text-emerald-700 text-[11px] font-bold">완료</span>
+            </div>
+            <div class="divide-y divide-slate-100">${rowsHtml}</div>
+            ${log.memo ? `<p class="mt-2.5 bg-slate-50 rounded-xl p-2.5 text-xs text-slate-600">💬 ${log.memo}</p>` : ''}
+          </article>
+        `;
+      }).join('');
+    }
+
+    // AI 전달용 기록 복사
+    function copyLogsForAI() {
+      if (!appState.logs || appState.logs.length === 0) {
+        showToast("복사할 운동 기록이 아직 없습니다.");
+        return;
+      }
+      const recent = appState.logs.slice(0, 6);
+      const summary = recent.map(log => {
+        const lines = (log.items || [])
+          .filter(i => i.completedSets > 0)
+          .map(i => `- ${i.name}: ${i.weight ? i.weight + 'kg' : '맨몸'} (${i.completedSets}/${i.totalSets}세트)`)
+          .join('\n');
+        return `[${log.date}] ${log.routineTitle}\n${lines}${log.memo ? '\n메모: ' + log.memo : ''}`;
+      }).join('\n\n');
+
+      const promptText = `내 최근 지하 헬스장 운동 기록이야. 이 무게와 수행 내역을 보고 다음 주에 적용할 새로운 맞춤 운동 루틴(JSON 포함)을 추천해 줘!\n\n${summary}`;
+      navigator.clipboard.writeText(promptText).then(() => {
+        showToast("📋 최근 운동 기록이 복사되었습니다! 채팅창에 그대로 붙여넣으세요.");
+      }).catch(() => {
+        showToast("복사에 실패했습니다. 브라우저 권한을 확인해 주세요.");
+      });
+    }
+
+    // 새 루틴 JSON 적용
+    function applyCustomRoutine() {
+      const raw = document.getElementById('custom-routine-input').value.trim();
+      if (!raw) {
+        showToast("⚠️ 붙여넣은 JSON 코드가 없습니다.");
+        return;
+      }
+      try {
+        const cleaned = raw.replace(/^```json\s*/i, '').replace(/```\s*$/, '');
+        const parsed = JSON.parse(cleaned);
+        if (!parsed.title || !Array.isArray(parsed.exercises)) {
+          throw new Error("올바른 루틴 형식이 아닙니다.");
+        }
+        appState.routine = parsed;
+        appState.completed = {};
+        saveAppState();
+        renderRoutine();
+        switchTab('workout');
+        showToast("🎉 새로운 운동 루틴이 적용되었습니다!");
+      } catch (e) {
+        showToast("❌ JSON 형식 오류입니다. 코드를 다시 확인해 주세요.");
+      }
+    }
+
+    function restoreDefaultRoutine() {
+      appState.routine = defaultRoutine;
+      appState.completed = {};
+      saveAppState();
+      renderRoutine();
+      switchTab('workout');
+      showToast("기본 전신 순환 루틴으로 복원되었습니다.");
+    }
+
+    // 타이머 로직
     let timerInterval = null;
     let remainingSeconds = 0;
 
     function formatTime(sec) {
-      const m = String(Math.floor(sec / 60)).padStart(2, '0');
-      const s = String(sec % 60).padStart(2, '0');
-      return `${m}:${s}`;
+      return `${String(Math.floor(sec / 60)).padStart(2, '0')}:${String(sec % 60).padStart(2, '0')}`;
     }
 
     function startTimer(seconds) {
       clearInterval(timerInterval);
       remainingSeconds = seconds;
-      
       const display = document.getElementById('timer-display');
       const stopBtn = document.getElementById('timer-stop-btn');
-      
       display.textContent = formatTime(remainingSeconds);
-      display.classList.remove('text-emerald-400');
-      display.classList.add('text-blue-400');
+      display.className = "font-mono text-base font-extrabold text-blue-400 tracking-wider";
       stopBtn.classList.remove('hidden');
 
-      // 오디오 컨텍스트 활성화 (모바일 브라우저 정책 대응)
-      if (state.soundOn && typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
+      if (appState.soundOn && typeof Tone !== 'undefined' && Tone.context.state !== 'running') {
         Tone.start().catch(() => {});
       }
 
@@ -785,8 +962,7 @@
         if (remainingSeconds <= 0) {
           clearInterval(timerInterval);
           display.textContent = "00:00";
-          display.classList.remove('text-blue-400');
-          display.classList.add('text-emerald-400');
+          display.className = "font-mono text-base font-extrabold text-emerald-400 tracking-wider";
           stopBtn.classList.add('hidden');
           playBeep();
           showToast("⏰ 휴식 종료! 다음 세트를 시작하세요.");
@@ -801,86 +977,82 @@
       remainingSeconds = 0;
       const display = document.getElementById('timer-display');
       display.textContent = "00:00";
-      display.classList.remove('text-emerald-400');
-      display.classList.add('text-blue-400');
+      display.className = "font-mono text-base font-extrabold text-blue-400 tracking-wider";
       document.getElementById('timer-stop-btn').classList.add('hidden');
     }
 
     function toggleSound() {
-      state.soundOn = !state.soundOn;
-      saveState();
+      appState.soundOn = !appState.soundOn;
+      saveAppState();
       updateSoundIcon();
-      showToast(state.soundOn ? "🔔 타이머 종료 알림음 켜짐" : "🔕 타이머 종료 알림음 꺼짐");
+      showToast(appState.soundOn ? "🔔 알림음 켜짐" : "🔕 알림음 꺼짐");
     }
 
     function updateSoundIcon() {
       const btn = document.getElementById('sound-toggle-btn');
-      btn.textContent = state.soundOn ? '🔔' : '🔕';
-      btn.classList.toggle('opacity-50', !state.soundOn);
+      btn.textContent = appState.soundOn ? '🔔' : '🔕';
+      btn.classList.toggle('opacity-50', !appState.soundOn);
     }
 
     function playBeep() {
-      if (!state.soundOn || typeof Tone === 'undefined') return;
+      if (!appState.soundOn || typeof Tone === 'undefined') return;
       try {
         const synth = new Tone.Synth().toDestination();
         const now = Tone.now();
         synth.triggerAttackRelease("C5", "16n", now);
         synth.triggerAttackRelease("E5", "16n", now + 0.15);
         synth.triggerAttackRelease("G5", "8n", now + 0.3);
-      } catch (e) {
-        console.error("알림음 재생 오류:", e);
-      }
+      } catch (e) {}
     }
 
-    // 주의점 아코디언 토글
     let precautionsOpen = true;
     function togglePrecautions() {
       precautionsOpen = !precautionsOpen;
-      const content = document.getElementById('precaution-content');
-      const arrow = document.getElementById('precaution-arrow');
-      content.classList.toggle('hidden', !precautionsOpen);
-      arrow.style.transform = precautionsOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
+      document.getElementById('precaution-content').classList.toggle('hidden', !precautionsOpen);
+      document.getElementById('precaution-arrow').style.transform = precautionsOpen ? 'rotate(0deg)' : 'rotate(-90deg)';
     }
 
-    // 초기화 모달 제어
     function openResetModal() {
-      const modal = document.getElementById('reset-modal');
-      modal.classList.remove('hidden');
-      modal.classList.add('flex');
+      const m = document.getElementById('reset-modal');
+      m.classList.remove('hidden');
+      m.classList.add('flex');
     }
 
     function closeResetModal() {
-      const modal = document.getElementById('reset-modal');
-      modal.classList.add('hidden');
-      modal.classList.remove('flex');
+      const m = document.getElementById('reset-modal');
+      m.classList.add('hidden');
+      m.classList.remove('flex');
     }
 
     function confirmReset() {
-      state.completed = {};
-      saveState();
+      appState.completed = {};
+      saveAppState();
       stopTimer();
       renderRoutine();
       closeResetModal();
-      showToast("모든 세트 체크가 초기화되었습니다.");
+      showToast("오늘 세트 체크가 초기화되었습니다.");
     }
 
-    // 토스트 알림
     let toastTimeout = null;
     function showToast(msg) {
       const toast = document.getElementById('toast-msg');
       toast.textContent = msg;
       toast.classList.remove('hidden');
       clearTimeout(toastTimeout);
-      toastTimeout = setTimeout(() => {
-        toast.classList.add('hidden');
-      }, 2400);
+      toastTimeout = setTimeout(() => toast.classList.add('hidden'), 2600);
     }
 
-    // 초기 실행
     window.addEventListener('DOMContentLoaded', () => {
-      loadState();
+      loadAppState();
+      document.getElementById('gh-owner').value = appState.github.owner || '';
+      document.getElementById('gh-repo').value = appState.github.repo || '';
+      document.getElementById('gh-token').value = appState.github.token || '';
+      updateSyncBadge();
       updateSoundIcon();
       renderRoutine();
+      if (appState.github.owner && appState.github.repo && appState.github.token) {
+        fetchLogsFromGitHub(false);
+      }
     });
   </script>
 </body>
