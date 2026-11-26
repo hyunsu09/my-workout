@@ -1,75 +1,1592 @@
 <!DOCTYPE html>
-<html lang="ko">
+<html lang="ko" data-user="pretty">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>이쁜이 & 듬직이 지하 헬스장 운동 일지</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
-  <style>
-    body {
-      font-family: 'Noto Sans KR', -apple-system, BlinkMacSystemFont, sans-serif;
-      background-color: #f1f5f9;
-      color: #0f172a;
-      -webkit-tap-highlight-color: transparent;
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<meta name="theme-color" content="#f7f4ef" />
+<title>운동 기록</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        fontFamily: { sans: ["Noto Sans KR", "sans-serif"] },
+        maxWidth: { phone: "480px" }
+      }
     }
-    input[type="number"]::-webkit-inner-spin-button,
-    input[type="number"]::-webkit-outer-spin-button {
-      -webkit-appearance: none;
-      margin: 0;
-    }
-    input[type="number"] {
-      -moz-appearance: textfield;
-    }
-  </style>
+  };
+</script>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root {
+    --accent: #c45364;
+    --accent-soft: #fdecef;
+    --accent-ink: #8d3140;
+    --paper: #f7f4ef;
+    --ink: #1f1a17;
+    --muted: #6f675e;
+  }
+  :root[data-user="reliable"] {
+    --accent: #1f6a54;
+    --accent-soft: #e5f5ef;
+    --accent-ink: #145241;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: "Noto Sans KR", sans-serif;
+    background: #e6e0d6;
+    color: var(--ink);
+  }
+  #app {
+    max-width: 480px;
+    margin: 0 auto;
+    min-height: 100dvh;
+    background: var(--paper);
+    padding-bottom: calc(84px + env(safe-area-inset-bottom));
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.05);
+  }
+  button, input, textarea { font-family: inherit; }
+  button { cursor: pointer; }
+  #app button:focus-visible,
+  #app input:focus-visible,
+  #app textarea:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+  }
+  .sticky-wrap {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+  .top {
+    background: rgba(247, 244, 239, 0.94);
+    backdrop-filter: blur(12px);
+    padding: calc(10px + env(safe-area-inset-top)) 16px 10px;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  }
+  .eyebrow {
+    margin: 0;
+    font-size: 11px;
+    color: #8a837a;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .users {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .users button {
+    min-height: 44px;
+    border-radius: 999px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    background: #fff;
+    color: var(--ink);
+    font-weight: 800;
+    font-size: 15px;
+  }
+  .users button[aria-checked="true"] {
+    background: var(--accent);
+    color: #fff;
+    border-color: transparent;
+  }
+  .sync {
+    margin: 8px 0 0;
+    min-height: 16px;
+    font-size: 11px;
+    color: var(--muted);
+  }
+  .sync.bad { color: #b42318; }
+  .timer { background: #241f1c; color: #f6f1ea; padding: 12px 16px 14px; }
+  .timer.done { background: #e36a2f; }
+  .timer-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+  .timer-kicker { margin: 0; font-size: 11px; letter-spacing: 0.04em; color: rgba(255, 255, 255, 0.62); }
+  #clock {
+    margin: 2px 0 0;
+    font-size: 34px;
+    font-weight: 800;
+    letter-spacing: -0.04em;
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  #clock.run { color: #ffd0b5; }
+  .timer-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; width: min(230px, 62%); }
+  .timer-actions button {
+    min-height: 42px;
+    border: 0;
+    border-radius: 12px;
+    background: #3a342e;
+    color: #fff;
+    font-weight: 800;
+    font-size: 14px;
+  }
+  .timer-actions button[data-action="stop-timer"] {
+    background: transparent;
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.3);
+  }
+  #timerLabel { margin: 8px 0 0; min-height: 16px; font-size: 12px; color: rgba(255, 255, 255, 0.78); }
+  #view { padding: 14px 14px 8px; }
+  #view svg { display: block; width: 100%; height: auto; }
+  .summary, .day, .panel, .empty {
+    background: #fff;
+    border-radius: 20px;
+    padding: 14px;
+    margin-bottom: 12px;
+    box-shadow: 0 8px 24px rgba(50, 36, 20, 0.05);
+  }
+  .summary .row, .title-row, .sets-label, .day-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .summary strong { font-size: 18px; }
+  .progress { height: 8px; margin-top: 10px; overflow: hidden; border-radius: 99px; background: #ece6dc; }
+  .progress > div { height: 100%; background: var(--accent); }
+  .guide-card {
+    background: #fff;
+    border-radius: 20px;
+    padding: 14px;
+    margin-bottom: 12px;
+    border-left: 4px solid var(--accent);
+    box-shadow: 0 8px 24px rgba(50, 36, 20, 0.05);
+  }
+  .guide-card h3 { margin: 0 0 8px; font-size: 14px; font-weight: 800; color: var(--ink); }
+  .guide-card ul { margin: 0; padding: 0; list-style: none; display: grid; gap: 6px; font-size: 12px; line-height: 1.48; color: #47413a; }
+  .guide-card li strong { color: var(--accent-ink); font-weight: 700; }
+  .yt-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    margin-top: 8px;
+    padding: 6px 11px;
+    border-radius: 999px;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    color: #b91c1c;
+    font-size: 12px;
+    font-weight: 700;
+    text-decoration: none;
+  }
+  .yt-btn:active { opacity: 0.8; }
+  .ex {
+    overflow: hidden;
+    margin-bottom: 12px;
+    border-radius: 24px;
+    background: #fff;
+    box-shadow: 0 10px 28px rgba(50, 36, 20, 0.06);
+  }
+  .ex.done { box-shadow: inset 0 0 0 2px var(--accent), 0 10px 28px rgba(50, 36, 20, 0.06); }
+  .ex .body { padding: 14px 14px 16px; }
+  .title-row h2 { display: flex; align-items: center; gap: 6px; margin: 0; font-size: 17px; line-height: 1.35; }
+  .idx {
+    display: inline-grid;
+    place-items: center;
+    width: 22px;
+    height: 22px;
+    flex: none;
+    border-radius: 99px;
+    background: var(--accent);
+    color: #fff;
+    font-size: 12px;
+    font-weight: 800;
+  }
+  .tags { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 4px; }
+  .tag {
+    border-radius: 99px;
+    background: #f3eee6;
+    color: #5e574f;
+    padding: 4px 8px;
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+  .tag.next { background: var(--accent-soft); color: var(--accent-ink); }
+  .tag.ok { background: var(--accent); color: #fff; }
+  .meta { margin: 6px 0 0; color: var(--muted); font-size: 13px; }
+  .point {
+    margin: 10px 0 0;
+    border-radius: 14px;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    padding: 10px 12px;
+    font-size: 13px;
+    line-height: 1.55;
+  }
+  .prev {
+    margin-top: 10px;
+    border-radius: 12px;
+    background: #f6f3ee;
+    padding: 8px 10px;
+    color: #5e574f;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .field { display: block; margin-top: 12px; color: var(--muted); font-size: 12px; font-weight: 700; }
+  #app input, #app textarea {
+    width: 100%;
+    margin-top: 6px;
+    border: 1px solid rgba(0, 0, 0, 0.12);
+    border-radius: 12px;
+    background: #fff;
+    color: var(--ink);
+    padding: 12px;
+    font-size: 16px;
+  }
+  #app textarea {
+    min-height: 180px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+  .sets { margin-top: 12px; }
+  .sets-label { margin-bottom: 8px; color: var(--muted); font-size: 12px; font-weight: 700; }
+  .set-row { display: flex; flex-wrap: wrap; gap: 8px; }
+  .set-row button {
+    min-width: 48px;
+    height: 48px;
+    padding: 0 14px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 14px;
+    background: #fff;
+    font-size: 16px;
+    font-weight: 800;
+  }
+  .set-row button.on { border-color: transparent; background: var(--accent); color: #fff; }
+  .panel h2, .day h3 { margin: 0; font-size: 18px; }
+  .lead { margin: 6px 0 0; color: var(--muted); font-size: 13px; line-height: 1.55; }
+  .actions { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 12px; }
+  .actions button, .wide, .banner button {
+    min-height: 44px;
+    border: 0;
+    border-radius: 12px;
+    background: var(--accent);
+    color: #fff;
+    font-weight: 800;
+  }
+  .actions .wide { grid-column: 1 / -1; }
+  button.ghost {
+    background: #fff;
+    color: var(--ink);
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+  }
+  .banner {
+    margin-bottom: 12px;
+    border-radius: 16px;
+    background: var(--accent-soft);
+    color: var(--accent-ink);
+    padding: 12px;
+    white-space: pre-line;
+    font-size: 13px;
+    line-height: 1.5;
+  }
+  .banner.bad { background: #fee2e2; color: #991b1b; }
+  .banner .row { display: flex; gap: 8px; margin-top: 8px; }
+  .banner button { flex: 1; }
+  .note { margin-top: 10px; font-size: 13px; line-height: 1.45; }
+  .note.bad { color: #b42318; }
+  .help { margin-top: 12px; }
+  .help summary { cursor: pointer; font-size: 13px; font-weight: 700; }
+  .help pre {
+    overflow: auto;
+    margin: 8px 0 0;
+    border-radius: 12px;
+    background: #f6f3ee;
+    padding: 12px;
+    font-size: 11px;
+    line-height: 1.45;
+  }
+  .day { padding-bottom: 8px; }
+  .day ul { margin: 8px 0 0; padding: 0; list-style: none; }
+  .day li { border-top: 1px solid #f0ebe3; padding: 8px 0; font-size: 13px; line-height: 1.45; }
+  .empty { text-align: center; color: var(--muted); padding: 28px 16px; }
+  .filechip {
+    display: inline-block;
+    margin-top: 8px;
+    border-radius: 8px;
+    background: #f3eee6;
+    padding: 4px 8px;
+    font-family: ui-monospace, Consolas, monospace;
+    font-size: 12px;
+  }
+  #app nav {
+    position: fixed;
+    bottom: 0;
+    left: 50%;
+    z-index: 30;
+    display: grid;
+    width: 100%;
+    max-width: 480px;
+    transform: translateX(-50%);
+    grid-template-columns: repeat(4, 1fr);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    background: rgba(255, 252, 248, 0.94);
+    backdrop-filter: blur(12px);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  #app nav button {
+    display: flex;
+    min-height: 62px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 3px;
+    border: 0;
+    background: transparent;
+    color: #7c756d;
+    font-size: 11px;
+    font-weight: 700;
+  }
+  #app nav button[aria-selected="true"] { color: var(--accent); }
+  #app nav svg { width: 20px; height: 20px; }
+  #toast {
+    position: fixed;
+    bottom: calc(76px + env(safe-area-inset-bottom));
+    left: 50%;
+    z-index: 40;
+    max-width: min(420px, 92vw);
+    transform: translateX(-50%) translateY(8px);
+    border-radius: 999px;
+    background: #241f1c;
+    color: #fff;
+    padding: 10px 14px;
+    font-size: 13px;
+    opacity: 0;
+    pointer-events: none;
+    transition: 0.2s ease;
+  }
+  #toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  @media (max-width: 360px) {
+    #clock { font-size: 30px; }
+    .title-row h2 { font-size: 15px; }
+  }
+</style>
 </head>
-<body class="antialiased selection:bg-blue-100 selection:text-blue-900">
+<body class="bg-[#e6e0d6] font-sans text-stone-900 antialiased">
+<div id="app" class="mx-auto min-h-screen max-w-[480px]"></div>
+<script>
+const FILES = {
+  pretty: "workout_logs_pretty.json",
+  reliable: "workout_logs_reliable.json"
+};
+const NAMES = { pretty: "이쁜이", reliable: "듬직이" };
+const ACTIVE_KEY = "workout_active_user";
+const GH_KEY = "workout_github_settings";
+const ART_KEYS = new Set(["treadmill", "legpress", "legcurl", "legext", "latpull", "chest", "reardelt", "backext", "roller", "generic"]);
+const INK = "#2c2825";
+const SKIN = "#f3c7ae";
+const PAD = "#465566";
+const METAL = "#d2ccc2";
+const ARROW = "#e36a2f";
 
-  <div class="max-w-[480px] mx-auto min-h-screen bg-slate-50 shadow-xl border-x border-slate-200/80 pb-14">
-    
-    <!-- 상단 고정 헤더 -->
-    <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm">
-      <!-- 사용자 전환 바 (이쁜이 / 듬직이) -->
-      <div class="bg-slate-100/90 px-4 py-2 border-b border-slate-200/80 flex items-center justify-between gap-2">
-        <span class="text-[11px] font-extrabold text-slate-500 shrink-0">👤 사용자 선택</span>
-        <div class="grid grid-cols-2 gap-2 flex-1 max-w-[220px]">
-          <button onclick="switchUser('pretty')" id="user-btn-pretty" class="py-1.5 rounded-lg text-xs font-extrabold bg-rose-500 text-white shadow-xs transition">
-            이쁜이
-          </button>
-          <button onclick="switchUser('reliable')" id="user-btn-reliable" class="py-1.5 rounded-lg text-xs font-bold bg-white text-slate-600 border border-slate-200 hover:bg-slate-50 transition">
-            듬직이
-          </button>
-        </div>
+const PROFILES = {
+  pretty: "50세 여성 · 골격근량 21kg 맞춤 전신 루틴 (주 2~3회 · 관절 보호)",
+  reliable: "53세 남성 · 골격근량 34kg 맞춤 전신 루틴 (주 2~3회 · 근력 유지·강화)"
+};
+const GUIDANCE = {
+  pretty: {
+    title: "📅 이쁜이 권장 빈도 및 주 3회 증량 타이밍",
+    items: [
+      ["기본 권장", "주 2회 (근육 회복 48~72시간 확보 · 나머지 날은 가벼운 걷기/러닝)"],
+      ["컨디션 조절", "식사량이 줄어 기운이 없거나 속이 더부룩한 날은 기구당 2세트만 수행해도 충분"],
+      ["주 3회 증량 시점", "주 2회 루틴을 2~3주 소화한 뒤 ① 다음 날 근육통·피로감이 거의 없고 ② 식사·수분 섭취가 안정되었을 때 주 3회로 증량"],
+      ["총 진행 기간 (기본 2~3개월 · 8~12주)", "· 1개월 차: 자세·관절 적응 (가벼운 권장 무게로 정자세 12~15회)\n· 2개월 차: 근력 향상 (수월해지면 무게 한 칸 또는 주 3회 증량)\n· 3개월 차: 체성분 변화 확인 후, 모든 기구가 전혀 힘들지 않으면 상·하체 분할 등 다음 단계 루틴으로 교체"]
+    ]
+  },
+  reliable: {
+    title: "📅 듬직이 권장 빈도 및 주 3회 증량 타이밍",
+    items: [
+      ["기본 권장", "주 2~3회 (전신 근력 유지·강화 · 운동 후 48시간 이상 휴식 권장)"],
+      ["컨디션 조절", "어깨·허리 관절에 뻐근함이 있거나 피로가 누적된 주에는 주 2회로 조절하며 자세 유지에 집중"],
+      ["주 3회 증량/강도 상향 시점", "주 2회 루틴을 2~3주 무리 없이 소화하고 ① 모든 세트의 목표 횟수(12회)를 정자세로 채울 수 있으며 ② 다음 날 관절 통증·피로감이 없을 때 주 3회 또는 권장 무게 상한선(+5kg)으로 증량"],
+      ["총 진행 기간 (기본 2~3개월 · 8~12주)", "· 1개월 차: 전신 자세·관절 적응 (정자세로 목표 횟수 채우기)\n· 2개월 차: 근력·근지구력 강화 (무게 +5kg 상향 또는 주 3회 증량)\n· 3개월 차: 체성분·근력 안정화 후, 권장 무게 최대치로 3세트가 수월해지면 상·하체 분할 등 다음 단계 루틴으로 교체"]
+    ]
+  }
+};
+const DEFAULT_ROUTINES = {
+  pretty: [
+    { id: "treadmill", name: "트레드밀", subtitle: "워밍업", sets: 1, reps: "7분", rest: 0, weight: false, guide: "속도 4.5~5.0 · 경사 1~2", tip: "가볍게 빠르게 걸으며 무릎·고관절 윤활 및 체온 올리기", youtubeUrl: "https://www.youtube.com/watch?v=elEliD-ZBZc", art: "treadmill" },
+    { id: "leg-press", name: "시티드 레그 프레스", subtitle: "하체 전반", sets: 3, reps: "12~15회", rest: 60, weight: true, guide: "권장 20~30kg · 밀 때 숨 내쉬기", tip: "무릎을 완전히 펴지 말고 95%만 펴기 (발뒤꿈치로 밀기)", youtubeUrl: "https://www.youtube.com/watch?v=_DMpbsVyphs", art: "legpress" },
+    { id: "leg-curl", name: "라잉 레그 컬", subtitle: "햄스트링", sets: 3, reps: "12~15회", rest: 60, weight: true, guide: "권장 10~15kg · 천천히 내리기", tip: "허리가 들리지 않게 복부에 힘을 주고 엉덩이 쪽으로 당기기", youtubeUrl: "https://www.youtube.com/watch?v=6I0NiRc6yww", art: "legcurl" },
+    { id: "leg-extension", name: "레그 익스텐션", subtitle: "허벅지 앞쪽", sets: 3, reps: "12~15회", rest: 60, weight: true, guide: "권장 10~15kg · 반동 금지", tip: "무릎 보호 핵심! 올릴 때 1초 멈췄다가 2초에 걸쳐 천천히 내리기", youtubeUrl: "https://www.youtube.com/watch?v=lkpla4Iccb4", art: "legext" },
+    { id: "lat-pulldown", name: "랫 풀다운 머신", subtitle: "등", sets: 3, reps: "12~15회", rest: 60, weight: true, guide: "권장 15~20kg · 쇄골 쪽으로 당기기", tip: "어깨가 으쓱 올라가지 않게 날개뼈를 먼저 아래로 내린 후 당기기", youtubeUrl: "https://www.youtube.com/watch?v=5UPOD0he724", art: "latpull" },
+    { id: "chest-press", name: "체스트 프레스 / 펙 덱 플라이", subtitle: "가슴", sets: 3, reps: "12~15회", rest: 60, weight: true, guide: "권장 10~15kg · 어깨 힘 빼기", tip: "어깨 앞쪽이 찝히지 않도록 손잡이 높이를 가슴 중앙에 맞추기", youtubeUrl: "https://www.youtube.com/watch?v=6CPnYJonfUo", art: "chest" },
+    { id: "rear-delt", name: "리어 델트 플라이", subtitle: "후면 어깨·상부 등", sets: 3, reps: "15회", rest: 45, weight: true, guide: "권장 5~10kg · 가벼운 무게로 정확히", tip: "펙 덱 머신에 반대로 앉아 가슴을 패드에 대고 팔을 뒤로 벌리며 굽은 등 펴기", youtubeUrl: "https://www.youtube.com/watch?v=1QqiK5pVclg", art: "reardelt" },
+    { id: "back-extension", name: "백 익스텐션", subtitle: "허리·코어 후면", sets: 3, reps: "10~12회", rest: 45, weight: false, guide: "맨몸 · 엉덩이 힘으로 올라오기", tip: "허리 부담 방지를 위해 상체를 뒤로 젖히지 말고 몸이 일직선일 때만 정지", youtubeUrl: "https://www.youtube.com/watch?v=z9PlnlXH1sg", art: "backext" },
+    { id: "foam-roller", name: "마무리 스트레칭", subtitle: "보라색 폼롤러", sets: 1, reps: "5분", rest: 0, weight: false, guide: "통증 없는 시원한 강도로 호흡", tip: "종아리, 허벅지 바깥쪽(장경인대), 상부 등을 천천히 문질러 이완하기", youtubeUrl: "https://www.youtube.com/watch?v=6IHiozEg1rU", art: "roller" }
+  ],
+  reliable: [
+    { id: "treadmill", name: "트레드밀", subtitle: "워밍업", sets: 1, reps: "7분", rest: 0, weight: false, guide: "속도 5.5~6.0 · 경사 2~3", tip: "빠르게 걸으며 하체 관절 윤활 및 심박수 올리기", youtubeUrl: "https://www.youtube.com/watch?v=elEliD-ZBZc", art: "treadmill" },
+    { id: "leg-press", name: "시티드 레그 프레스", subtitle: "하체 전반", sets: 3, reps: "12회", rest: 60, weight: true, guide: "권장 60~80kg · 발뒤꿈치로 강하게 밀기", tip: "무릎을 완전히 펴지 말고 95%만 펴기 (관절 잠금 금지)", youtubeUrl: "https://www.youtube.com/watch?v=_DMpbsVyphs", art: "legpress" },
+    { id: "leg-curl", name: "라잉 레그 컬", subtitle: "햄스트링", sets: 3, reps: "12회", rest: 60, weight: true, guide: "권장 25~35kg · 당길 때 1초 수축", tip: "허리가 뜨지 않게 복부에 힘을 주고 엉덩이 쪽으로 당기기", youtubeUrl: "https://www.youtube.com/watch?v=6I0NiRc6yww", art: "legcurl" },
+    { id: "leg-extension", name: "레그 익스텐션", subtitle: "허벅지 앞쪽", sets: 3, reps: "12회", rest: 60, weight: true, guide: "권장 30~40kg · 반동 없이 컨트롤", tip: "무릎 보호 핵심! 올릴 때 1초 멈췄다가 천천히 버티며 내리기", youtubeUrl: "https://www.youtube.com/watch?v=lkpla4Iccb4", art: "legext" },
+    { id: "lat-pulldown", name: "랫 풀다운 머신", subtitle: "등", sets: 3, reps: "10~12회", rest: 60, weight: true, guide: "권장 40~50kg · 가슴 윗쪽까지 당기기", tip: "어깨가 으쓱 올라가지 않게 날개뼈를 먼저 아래로 내린 후 당기기", youtubeUrl: "https://www.youtube.com/watch?v=5UPOD0he724", art: "latpull" },
+    { id: "chest-press", name: "체스트 프레스 / 펙 덱 플라이", subtitle: "가슴", sets: 3, reps: "10~12회", rest: 60, weight: true, guide: "권장 35~45kg · 팔꿈치 과신전 주의", tip: "어깨 앞쪽이 찝히지 않도록 손잡이 높이를 가슴 중앙에 맞추기", youtubeUrl: "https://www.youtube.com/watch?v=6CPnYJonfUo", art: "chest" },
+    { id: "rear-delt", name: "리어 델트 플라이", subtitle: "후면 어깨·상부 등", sets: 3, reps: "15회", rest: 45, weight: true, guide: "권장 15~20kg · 등 상부 조이기", tip: "펙 덱 머신에 반대로 앉아 가슴을 패드에 대고 팔을 뒤로 벌리며 굽은 등 펴기", youtubeUrl: "https://www.youtube.com/watch?v=1QqiK5pVclg", art: "reardelt" },
+    { id: "back-extension", name: "백 익스텐션", subtitle: "허리·코어 후면", sets: 3, reps: "12~15회", rest: 45, weight: false, guide: "맨몸 또는 5kg 원판 · 코어 고정", tip: "상체를 과하게 뒤로 젖히지 말고 몸이 일직선이 될 때까지만 올라오기", youtubeUrl: "https://www.youtube.com/watch?v=z9PlnlXH1sg", art: "backext" },
+    { id: "foam-roller", name: "마무리 스트레칭", subtitle: "보라색 폼롤러", sets: 1, reps: "5분", rest: 0, weight: false, guide: "깊게 호흡하며 근막 이완", tip: "종아리, 허벅지 바깥쪽(장경인대), 상부 등을 천천히 문질러 이완하기", youtubeUrl: "https://www.youtube.com/watch?v=6IHiozEg1rU", art: "roller" }
+  ]
+};
+function defaultRoutineFor(u = user) {
+  return DEFAULT_ROUTINES[u] || DEFAULT_ROUTINES.pretty;
+}
+
+const ALT = {
+  treadmill: "트레드밀 위를 가볍게 걷는 그림. 벨트 위에 앞으로 가는 화살표.",
+  legpress: "시티드 레그 프레스. 무릎을 95%만 펴고 발판을 미는 화살표.",
+  legcurl: "라잉 레그 컬. 허리를 고정하고 발뒤꿈치를 엉덩이 쪽으로 당기는 화살표.",
+  legext: "레그 익스텐션. 위에서 1초 멈춘 뒤 천천히 내리는 화살표.",
+  latpull: "랫 풀다운. 1번 날개뼈를 내리고 2번 바를 당기는 화살표.",
+  chest: "체스트 프레스. 손잡이가 가슴 중앙 높이에 있고 앞으로 미는 화살표.",
+  reardelt: "리어 델트 플라이. 반대로 앉아 가슴을 패드에 대고 팔을 뒤로 벌리는 화살표.",
+  backext: "백 익스텐션. 몸이 일직선이 될 때까지만 올라오고 그 위는 넘어가지 않음.",
+  roller: "보라색 폼롤러로 종아리, 장경인대, 상부 등을 문지르는 그림.",
+  generic: "운동 자세와 움직임 화살표."
+};
+
+const app = document.getElementById("app");
+let user = localStorage.getItem(ACTIVE_KEY);
+if (user !== "pretty" && user !== "reliable") user = "pretty";
+let data = emptyData();
+let blocked = false;
+let tab = "today";
+let pending = null;
+let note = "";
+let noteBad = false;
+let routineDraft = "";
+let routineError = "";
+let lastError = "";
+let netBusy = false;
+let pushTimer = 0;
+let pushQueued = false;
+let pushChain = Promise.resolve();
+const syncMsg = { pretty: null, reliable: null };
+let audioCtx = null;
+let keeper = null;
+const timer = { endsAt: 0, running: false, label: "대기 중", tick: 0 };
+let toastTimer = 0;
+
+function emptyData() {
+  return { version: 1, updatedAt: null, routine: null, days: [] };
+}
+function esc(value) {
+  return String(value ?? "").replace(/[&<>"']/g, (ch) => ({
+    "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+  }[ch]));
+}
+function todayStr() {
+  const d = new Date();
+  const z = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${z(d.getMonth() + 1)}-${z(d.getDate())}`;
+}
+function formatDate(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return `${y}년 ${m}월 ${d}일 (${"일월화수목금토"[dt.getDay()]})`;
+}
+function shortDate(iso) {
+  const [y, m, d] = iso.split("-").map(Number);
+  const dt = new Date(y, m - 1, d);
+  return `${m}/${d} (${"일월화수목금토"[dt.getDay()]})`;
+}
+function headerDate() {
+  const d = new Date();
+  return `${d.getMonth() + 1}월 ${d.getDate()}일 (${"일월화수목금토"[d.getDay()]})`;
+}
+function activeRoutine() {
+  return data.routine && data.routine.length ? data.routine : defaultRoutineFor(user);
+}
+function prescription(ex) {
+  const rest = ex.rest > 0 ? `휴식 ${ex.rest}초` : "휴식 없음";
+  const work = ex.sets === 1 ? `1세트, ${ex.reps}` : `${ex.sets}세트 × ${ex.reps}`;
+  return `${work} · ${rest}`;
+}
+function meaningful(rec) {
+  if (!rec) return false;
+  if (String(rec.weight || "").trim()) return true;
+  return Array.isArray(rec.done) && rec.done.some(Boolean);
+}
+function cleanWeight(value) {
+  const cleaned = String(value).replace(/[^\d.]/g, "");
+  const parts = cleaned.split(".");
+  if (parts.length <= 1) return parts[0].slice(0, 5);
+  return `${parts[0].slice(0, 5)}.${parts.slice(1).join("").slice(0, 2)}`;
+}
+function parseRoutine(input) {
+  let parsed = input;
+  if (typeof input === "string") {
+    const text = input.trim();
+    if (!text) throw new Error("JSON이 비어 있습니다.");
+    try { parsed = JSON.parse(text); }
+    catch (e) { throw new Error("JSON 형식이 아닙니다."); }
+  }
+  if (parsed && !Array.isArray(parsed) && Array.isArray(parsed.routine)) parsed = parsed.routine;
+  if (!Array.isArray(parsed) || !parsed.length) throw new Error("운동 배열이 필요합니다.");
+  if (parsed.length > 30) throw new Error("운동은 30개까지 넣을 수 있습니다.");
+  const ids = new Set();
+  return parsed.map((raw, i) => {
+    if (!raw || typeof raw !== "object") throw new Error(`${i}번 항목이 객체가 아닙니다.`);
+    const id = String(raw.id || "").trim();
+    const name = String(raw.name || "").trim();
+    if (!id || !name) throw new Error(`${i}번 운동에 id와 name이 필요합니다.`);
+    if (!/^[a-zA-Z0-9_-]+$/.test(id)) throw new Error(`${name}: id는 영문, 숫자, -, _ 만 사용할 수 있습니다.`);
+    if (ids.has(id)) throw new Error(`id가 중복됩니다: ${id}`);
+    ids.add(id);
+    const sets = Number(raw.sets);
+    if (!Number.isInteger(sets) || sets < 1 || sets > 12) throw new Error(`${name}: sets는 1부터 12까지여야 합니다.`);
+    const rest = raw.rest == null || raw.rest === "" ? 0 : Number(raw.rest);
+    if (!Number.isInteger(rest) || rest < 0 || rest > 600) throw new Error(`${name}: rest는 0부터 600초까지여야 합니다.`);
+    const art = String(raw.art || "generic");
+    return {
+      id, name,
+      subtitle: String(raw.subtitle || "").slice(0, 40),
+      sets,
+      reps: String(raw.reps || "").slice(0, 40),
+      rest,
+      weight: Boolean(raw.weight),
+      guide: String(raw.guide || "").slice(0, 80),
+      tip: String(raw.tip || "").slice(0, 300),
+      youtubeUrl: /^https?:\/\//i.test(String(raw.youtubeUrl || "").trim()) ? String(raw.youtubeUrl).trim().slice(0, 300) : "",
+      art: ART_KEYS.has(art) ? art : "generic"
+    };
+  });
+}
+function normalize(raw) {
+  const src = raw && typeof raw === "object" ? raw : {};
+  let routine = null;
+  if (Array.isArray(src.routine)) {
+    try { routine = parseRoutine(src.routine); }
+    catch (e) { routine = null; }
+  }
+  const days = [];
+  if (Array.isArray(src.days)) {
+    src.days.forEach((day) => {
+      if (!day || typeof day.date !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(day.date)) return;
+      if (!day.exercises || typeof day.exercises !== "object") return;
+      days.push({ date: day.date, exercises: day.exercises });
+    });
+  }
+  return { version: 1, updatedAt: src.updatedAt || null, routine, days };
+}
+function loadData() {
+  blocked = false;
+  const raw = localStorage.getItem(FILES[user]);
+  if (!raw) { data = emptyData(); return; }
+  try { data = normalize(JSON.parse(raw)); }
+  catch (e) { blocked = true; data = emptyData(); }
+}
+function prune() {
+  data.days = data.days.filter((day) => Object.values(day.exercises || {}).some(meaningful));
+}
+function canonicalize(src, person) {
+  const routine = src.routine && src.routine.length ? src.routine : null;
+  const order = (routine || defaultRoutineFor(person)).map((ex) => ex.id);
+  const days = src.days.slice().sort((a, b) => a.date.localeCompare(b.date)).map((day) => {
+    const ids = Object.keys(day.exercises || {}).sort((a, b) => {
+      const ia = order.indexOf(a);
+      const ib = order.indexOf(b);
+      const ra = ia === -1 ? 999 : ia;
+      const rb = ib === -1 ? 999 : ib;
+      if (ra !== rb) return ra - rb;
+      return a.localeCompare(b);
+    });
+    const exercises = {};
+    ids.forEach((id) => {
+      const rec = day.exercises[id] || {};
+      exercises[id] = {
+        weight: rec.weight == null ? "" : String(rec.weight),
+        done: Array.isArray(rec.done) ? rec.done.map(Boolean) : []
+      };
+    });
+    return { date: day.date, exercises };
+  });
+  return { version: 1, person, updatedAt: new Date().toISOString(), routine, days };
+}
+function saveLocal(push) {
+  if (blocked) return;
+  prune();
+  localStorage.setItem(FILES[user], JSON.stringify(canonicalize(data, NAMES[user]), null, 2));
+  if (push === false) setSyncFor(user, readCfg().token ? "이 기기에 저장됨" : "이 기기에만 저장 중", false);
+  else schedulePush();
+}
+function ensureToday() {
+  const today = todayStr();
+  let day = data.days.find((item) => item.date === today);
+  if (!day) {
+    day = { date: today, exercises: {} };
+    data.days.push(day);
+  }
+  return day;
+}
+function ensureRec(day, ex) {
+  if (!day.exercises[ex.id]) day.exercises[ex.id] = { weight: "", done: Array(ex.sets).fill(false) };
+  const rec = day.exercises[ex.id];
+  if (!Array.isArray(rec.done)) rec.done = [];
+  if (rec.done.length !== ex.sets) {
+    const next = Array(ex.sets).fill(false);
+    rec.done.forEach((flag, i) => { if (i < ex.sets) next[i] = Boolean(flag); });
+    rec.done = next;
+  }
+  if (rec.weight == null) rec.weight = "";
+  return rec;
+}
+function viewRec(ex) {
+  const day = data.days.find((item) => item.date === todayStr());
+  const rec = day && day.exercises ? day.exercises[ex.id] : null;
+  return {
+    done: Array.from({ length: ex.sets }, (_, i) => Boolean(rec && rec.done && rec.done[i])),
+    weight: rec && rec.weight ? String(rec.weight) : ""
+  };
+}
+function lastSession(exId) {
+  const today = todayStr();
+  let best = null;
+  data.days.forEach((day) => {
+    if (day.date >= today) return;
+    if (!meaningful(day.exercises[exId])) return;
+    if (!best || day.date > best.date) best = day;
+  });
+  return best;
+}
+function prevText(ex) {
+  const day = lastSession(ex.id);
+  if (!day) return "이전 기록 없음";
+  const rec = day.exercises[ex.id];
+  const done = Array.isArray(rec.done) ? rec.done : [];
+  const bits = [`지난 ${shortDate(day.date)}`];
+  if (String(rec.weight || "").trim()) bits.push(`${rec.weight}kg`);
+  if (done.length) bits.push(`${done.filter(Boolean).length}/${done.length}세트`);
+  return bits.join(" · ");
+}
+function idsForDay(day) {
+  const order = activeRoutine().map((ex) => ex.id);
+  return Object.keys(day.exercises || {}).sort((a, b) => {
+    const ia = order.indexOf(a);
+    const ib = order.indexOf(b);
+    const ra = ia === -1 ? 999 : ia;
+    const rb = ib === -1 ? 999 : ib;
+    if (ra !== rb) return ra - rb;
+    return a.localeCompare(b);
+  });
+}
+function todayProgress() {
+  const day = data.days.find((item) => item.date === todayStr());
+  let total = 0;
+  let done = 0;
+  activeRoutine().forEach((ex) => {
+    total += ex.sets;
+    const rec = day && day.exercises ? day.exercises[ex.id] : null;
+    if (!rec || !Array.isArray(rec.done)) return;
+    done += Math.min(ex.sets, rec.done.filter(Boolean).length);
+  });
+  return { total, done, pct: total ? Math.round((done / total) * 100) : 0 };
+}
+
+function readCfg() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(GH_KEY) || "null");
+    if (saved && typeof saved === "object") {
+      return {
+        owner: String(saved.owner || "hyunsu09"),
+        repo: String(saved.repo || "my-workout"),
+        token: String(saved.token || "")
+      };
+    }
+  } catch (e) { /* keep defaults */ }
+  return { owner: "hyunsu09", repo: "my-workout", token: "" };
+}
+function cleanRepoFields(owner, repo) {
+  owner = String(owner || "").trim();
+  repo = String(repo || "").trim().replace(/\.git$/, "");
+  const url = repo.match(/github\.com\/([^/\s]+)\/([^/\s]+)/);
+  if (url) return { owner: url[1], repo: url[2].replace(/\.git$/, "") };
+  if (repo.includes("/")) {
+    const [left, right] = repo.split("/");
+    if (left && right) return { owner: left, repo: right.replace(/\.git$/, "") };
+  }
+  return { owner, repo };
+}
+function validateCfg(cfg) {
+  if (!/^[\w.-]+$/.test(cfg.owner) || !/^[\w.-]+$/.test(cfg.repo)) {
+    throw new Error("깃허브 아이디와 저장소 이름은 영문, 숫자, ., _, - 만 사용할 수 있습니다.");
+  }
+}
+function cfgFromForm(persist) {
+  const prev = readCfg();
+  const ownerEl = document.getElementById("ghOwner");
+  let owner = prev.owner;
+  let repo = prev.repo;
+  let token = prev.token;
+  if (ownerEl) {
+    const cleaned = cleanRepoFields(ownerEl.value, document.getElementById("ghRepo").value);
+    owner = cleaned.owner || prev.owner;
+    repo = cleaned.repo || prev.repo;
+    const typed = document.getElementById("ghToken").value.trim();
+    if (typed) token = typed;
+  }
+  const cfg = { owner, repo, token };
+  validateCfg(cfg);
+  if (persist) localStorage.setItem(GH_KEY, JSON.stringify(cfg));
+  return cfg;
+}
+function toB64(text) {
+  const bytes = new TextEncoder().encode(text);
+  let binary = "";
+  for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary);
+}
+function fromB64(b64) {
+  const binary = atob(String(b64).replace(/\s/g, ""));
+  const bytes = new Uint8Array(binary.length);
+  for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
+  return new TextDecoder().decode(bytes);
+}
+function ghHeaders(token) {
+  return {
+    Authorization: `Bearer ${token}`,
+    Accept: "application/vnd.github+json",
+    "X-GitHub-Api-Version": "2022-11-28",
+    "Content-Type": "application/json"
+  };
+}
+function contentsUrl(cfg, file) {
+  return `https://api.github.com/repos/${cfg.owner}/${cfg.repo}/contents/${file}`;
+}
+async function ghFetch(url, options) {
+  try { return await fetch(url, options); }
+  catch (e) { throw new Error("네트워크에 연결하지 못했습니다."); }
+}
+async function readGhError(res) {
+  let message = "";
+  try { message = (await res.json()).message || ""; }
+  catch (e) { message = ""; }
+  if (res.status === 401) return "토큰이 거부되었습니다. Fine-grained PAT를 확인해 주세요.";
+  if (res.status === 403) return "저장소 접근이 거부되었습니다. 토큰의 Contents 읽기·쓰기 권한을 확인해 주세요.";
+  if (res.status === 404) return "저장소를 찾지 못했습니다. 아이디와 저장소 이름을 확인해 주세요.";
+  return message || `깃허브 오류 (${res.status})`;
+}
+async function fetchSha(url, headers) {
+  const res = await ghFetch(url, { headers, cache: "no-store" });
+  if (res.status === 404) return null;
+  if (!res.ok) throw new Error(await readGhError(res));
+  const body = await res.json();
+  return body.sha || null;
+}
+async function putFile(url, headers, file, jsonText, sha) {
+  const payload = { message: `log: ${file} ${todayStr()}`, content: toB64(jsonText) };
+  if (sha) payload.sha = sha;
+  return ghFetch(url, { method: "PUT", headers, body: JSON.stringify(payload) });
+}
+async function sendGithub(which, jsonText) {
+  const cfg = readCfg();
+  if (!cfg.token) throw new Error("토큰이 없습니다.");
+  validateCfg(cfg);
+  const file = FILES[which];
+  const url = contentsUrl(cfg, file);
+  const headers = ghHeaders(cfg.token);
+  let sha = await fetchSha(url, headers);
+  let res = await putFile(url, headers, file, jsonText, sha);
+  if (res.status === 409 || res.status === 422) {
+    sha = await fetchSha(url, headers);
+    res = await putFile(url, headers, file, jsonText, sha);
+  }
+  if (!res.ok) throw new Error(await readGhError(res));
+}
+function schedulePush() {
+  const cfg = readCfg();
+  if (!cfg.token) {
+    setSyncFor(user, "이 기기에 저장됨", false);
+    return;
+  }
+  setSyncFor(user, "로컬 저장 · 곧 깃허브 반영", false);
+  pushQueued = true;
+  clearTimeout(pushTimer);
+  pushTimer = setTimeout(flushPush, 1400);
+}
+function flushPush() {
+  clearTimeout(pushTimer);
+  if (!pushQueued) return;
+  pushQueued = false;
+  const which = user;
+  const json = localStorage.getItem(FILES[which]);
+  if (!json) return;
+  setSyncFor(which, "깃허브 저장 중…", false);
+  pushChain = pushChain
+    .then(() => sendGithub(which, json))
+    .then(() => { lastError = ""; setSyncFor(which, "깃허브에 저장됨", false); })
+    .catch((err) => { lastError = err.message; setSyncFor(which, "깃허브 저장 실패", true); });
+}
+async function pullGithub() {
+  const cfg = cfgFromForm(true);
+  if (!cfg.token) throw new Error("Fine-grained PAT를 입력해 주세요.");
+  const res = await ghFetch(contentsUrl(cfg, FILES[user]), { headers: ghHeaders(cfg.token), cache: "no-store" });
+  if (res.status === 404) throw new Error(`${FILES[user]} 파일이 아직 없습니다. 기록을 저장하면 생성됩니다.`);
+  if (!res.ok) throw new Error(await readGhError(res));
+  const body = await res.json();
+  let parsed;
+  try { parsed = JSON.parse(fromB64(body.content || "")); }
+  catch (e) { throw new Error("깃허브 파일이 운동 기록 JSON이 아닙니다."); }
+  data = normalize(parsed);
+  blocked = false;
+  saveLocal(false);
+  lastError = "";
+  note = "깃허브 기록을 불러왔습니다.";
+  noteBad = false;
+  toast("깃허브 기록을 불러왔습니다.");
+}
+async function manualPush() {
+  const cfg = cfgFromForm(true);
+  if (!cfg.token) throw new Error("Fine-grained PAT를 입력해 주세요.");
+  saveLocal(false);
+  pushQueued = false;
+  clearTimeout(pushTimer);
+  setSyncFor(user, "깃허브 저장 중…", false);
+  await sendGithub(user, localStorage.getItem(FILES[user]));
+  lastError = "";
+  note = `${FILES[user]}에 저장했습니다.`;
+  noteBad = false;
+  setSyncFor(user, "깃허브에 저장됨", false);
+  toast("깃허브에 저장했습니다.");
+}
+function withNet(task) {
+  if (netBusy) return;
+  netBusy = true;
+  note = "깃허브와 통신 중…";
+  noteBad = false;
+  renderView();
+  Promise.resolve()
+    .then(task)
+    .catch((err) => {
+      note = err.message;
+      noteBad = true;
+      lastError = err.message;
+      setSyncFor(user, "깃허브 오류", true);
+    })
+    .finally(() => {
+      netBusy = false;
+      renderView();
+    });
+}
+
+function ensureAudio() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return null;
+  if (!audioCtx) audioCtx = new AC();
+  if (audioCtx.state === "suspended") audioCtx.resume();
+  return audioCtx;
+}
+function armAudio() {
+  const ctx = ensureAudio();
+  if (!ctx || keeper) return;
+  const osc = ctx.createOscillator();
+  const gain = ctx.createGain();
+  gain.gain.value = 0.00001;
+  osc.connect(gain);
+  gain.connect(ctx.destination);
+  osc.start();
+  keeper = osc;
+}
+function disarmAudio() {
+  if (!keeper) return;
+  try { keeper.stop(); } catch (e) { /* already stopped */ }
+  keeper = null;
+}
+function beep() {
+  const ctx = ensureAudio();
+  if (!ctx) return;
+  ctx.resume().then(() => {
+    [880, 880, 1175].forEach((freq, i) => {
+      const t = ctx.currentTime + i * 0.28;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.15, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.24);
+    });
+  }).catch(() => {});
+}
+function fmt(ms) {
+  const sec = Math.max(0, Math.ceil(ms / 1000));
+  return `${String(Math.floor(sec / 60)).padStart(2, "0")}:${String(sec % 60).padStart(2, "0")}`;
+}
+function paintTimer(ms) {
+  const clock = document.getElementById("clock");
+  const label = document.getElementById("timerLabel");
+  const box = document.getElementById("timer");
+  if (!clock) return;
+  clock.textContent = fmt(timer.running ? ms : 0);
+  clock.classList.toggle("run", timer.running);
+  if (label) label.textContent = timer.label;
+  if (box && timer.running) box.classList.remove("done");
+}
+function startTimer(seconds, label) {
+  armAudio();
+  timer.endsAt = Date.now() + seconds * 1000;
+  timer.running = true;
+  timer.label = label;
+  clearInterval(timer.tick);
+  timer.tick = setInterval(() => {
+    const left = timer.endsAt - Date.now();
+    if (left <= 0) stopTimer(true);
+    else paintTimer(left);
+  }, 200);
+  paintTimer(seconds * 1000);
+}
+function stopTimer(finished) {
+  clearInterval(timer.tick);
+  timer.tick = 0;
+  timer.running = false;
+  timer.endsAt = 0;
+  if (finished) {
+    timer.label = "휴식 끝";
+    beep();
+    if (navigator.vibrate) navigator.vibrate([90, 50, 90, 50, 180]);
+    const box = document.getElementById("timer");
+    if (box) {
+      box.classList.add("done");
+      setTimeout(() => box && box.classList.remove("done"), 1600);
+    }
+    setTimeout(disarmAudio, 1200);
+  } else {
+    timer.label = "정지됨";
+    disarmAudio();
+  }
+  paintTimer(0);
+}
+
+function head(x, y, dx, dy) {
+  const len = Math.hypot(dx, dy) || 1;
+  const ux = dx / len;
+  const uy = dy / len;
+  const bx = x - ux * 11;
+  const by = y - uy * 11;
+  return `<polygon points="${x},${y} ${bx + -uy * 6},${by + ux * 6} ${bx - -uy * 6},${by - ux * 6}" fill="${ARROW}"/>`;
+}
+function arrow(x1, y1, x2, y2) {
+  const dx = x2 - x1;
+  const dy = y2 - y1;
+  const len = Math.hypot(dx, dy) || 1;
+  const bx = x2 - (dx / len) * 11;
+  const by = y2 - (dy / len) * 11;
+  return `<line x1="${x1}" y1="${y1}" x2="${bx}" y2="${by}" stroke="${ARROW}" stroke-width="3" stroke-linecap="round"/>${head(x2, y2, dx, dy)}`;
+}
+function personHead(cx, cy) {
+  return `<circle cx="${cx}" cy="${cy}" r="12" fill="${SKIN}" stroke="${INK}" stroke-width="2"/>`;
+}
+const ARTS = {
+  treadmill() {
+    return `
+      <!-- 바닥 & 러닝머신 데크 -->
+      <line x1="24" y1="146" x2="296" y2="146" stroke="#d8d0c5" stroke-width="2" stroke-linecap="round"/>
+      <path d="M56 124 L244 114 L250 138 L52 142 Z" fill="#44403c" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="64" y="128" width="166" height="6" rx="3" fill="#292524"/>
+      <path d="M84 131 h16 M118 131 h16 M152 131 h16 M186 131 h16" stroke="#a8a29e" stroke-width="2" stroke-linecap="round"/>
+      <!-- 기둥 & 계기판 콘솔 & 손잡이 -->
+      <path d="M236 120 L248 48" stroke="#57534e" stroke-width="8" stroke-linecap="round"/>
+      <path d="M214 34 L268 42 L262 62 L210 52 Z" fill="#292524" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+      <rect x="220" y="40" width="26" height="8" rx="2" fill="#4ade80" opacity="0.85"/>
+      <path d="M168 80 H238" stroke="#78716c" stroke-width="5" stroke-linecap="round"/>
+      <!-- 걷는 사람 실루엣 -->
+      <circle cx="132" cy="48" r="11" fill="${SKIN}" stroke="${INK}" stroke-width="2"/>
+      <path d="M132 61 L126 94" stroke="${INK}" stroke-width="10" stroke-linecap="round"/>
+      <path d="M128 68 L156 80 L174 80" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M126 94 L106 124 M126 94 L148 122" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>
+      ${arrow(88, 152, 168, 152)}`;
+  },
+  legpress() {
+    return `
+      <line x1="24" y1="148" x2="296" y2="148" stroke="#d8d0c5" stroke-width="2" stroke-linecap="round"/>
+      <!-- 기구 프레임 & 경사 레일 -->
+      <path d="M52 148 V116 M108 148 V124 M236 148 L254 58" stroke="#78716c" stroke-width="6" stroke-linecap="round"/>
+      <path d="M116 126 L246 58" stroke="#a8a29e" stroke-width="7" stroke-linecap="round"/>
+      <!-- 시트 & 등받이 패드 -->
+      <rect x="34" y="64" width="16" height="62" rx="6" transform="rotate(-14 42 95)" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <rect x="44" y="114" width="66" height="14" rx="6" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <!-- 대형 발판 & 원판 -->
+      <polygon points="222,38 242,46 218,108 198,100" fill="#57534e" stroke="${INK}" stroke-width="2" stroke-linejoin="round"/>
+      <circle cx="256" cy="54" r="14" fill="#44403c" stroke="${INK}" stroke-width="2"/>
+      <circle cx="256" cy="54" r="5" fill="#d6d3d1"/>
+      <!-- 앉아서 미는 사람 실루엣 -->
+      <circle cx="70" cy="58" r="11" fill="${SKIN}" stroke="${INK}" stroke-width="2"/>
+      <path d="M64 72 L78 112" stroke="${INK}" stroke-width="11" stroke-linecap="round"/>
+      <path d="M78 112 L144 92 L208 74" fill="none" stroke="${INK}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="144" cy="92" r="5" fill="${ARROW}"/>
+      ${arrow(156, 72, 204, 54)}
+      <text x="150" y="46" fill="#9a3412" font-size="13" font-weight="800" font-family="Noto Sans KR, sans-serif">무릎 95%</text>`;
+  },
+  legcurl() {
+    return `
+      <line x1="24" y1="146" x2="296" y2="146" stroke="#d8d0c5" stroke-width="2" stroke-linecap="round"/>
+      <!-- 기구 프레임 & 무게추 타워 -->
+      <rect x="234" y="42" width="44" height="104" rx="6" fill="#d6d3d1" stroke="#78716c" stroke-width="2"/>
+      <path d="M242 58 h28 M242 70 h28 M242 82 h28 M242 94 h28" stroke="#57534e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M56 146 V112 M194 146 V112 M56 112 H234" stroke="#78716c" stroke-width="6" stroke-linecap="round"/>
+      <!-- 벤치 패드 -->
+      <rect x="44" y="98" width="166" height="16" rx="7" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <!-- 엎드린 사람 실루엣 -->
+      <circle cx="62" cy="78" r="10" fill="${SKIN}" stroke="${INK}" stroke-width="2"/>
+      <path d="M74 88 L158 92" stroke="${INK}" stroke-width="11" stroke-linecap="round"/>
+      <path d="M78 90 L66 112" stroke="${INK}" stroke-width="6" stroke-linecap="round"/>
+      <!-- 다리 & 발목 롤러 패드 -->
+      <path d="M158 92 L196 92 L182 54" fill="none" stroke="${INK}" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="180" cy="52" r="8" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <path d="M214 96 C228 70 218 46 196 42" fill="none" stroke="${ARROW}" stroke-width="3" stroke-linecap="round"/>
+      ${head(196, 42, -10, -3)}
+      <text x="114" y="76" fill="#9a3412" font-size="12" font-weight="800" font-family="Noto Sans KR, sans-serif">허리 고정</text>`;
+  },
+  legext() {
+    return `
+      <line x1="24" y1="146" x2="296" y2="146" stroke="#d8d0c5" stroke-width="2" stroke-linecap="round"/>
+      <!-- 무게추 타워 & 기구 프레임 -->
+      <rect x="28" y="38" width="38" height="108" rx="6" fill="#d6d3d1" stroke="#78716c" stroke-width="2"/>
+      <path d="M36 56 h22 M36 68 h22 M36 80 h22 M36 92 h22" stroke="#57534e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M66 112 H164 M112 146 V112 M164 146 V112" stroke="#78716c" stroke-width="6" stroke-linecap="round"/>
+      <!-- 시트 & 등받이 -->
+      <rect x="84" y="54" width="14" height="52" rx="6" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <rect x="92" y="100" width="70" height="14" rx="6" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <!-- 앉아서 다리 펴는 실루엣 & 정강이 패드 -->
+      <circle cx="110" cy="50" r="10" fill="${SKIN}" stroke="${INK}" stroke-width="2"/>
+      <path d="M108 62 L114 98 L162 98" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M162 98 L216 64" stroke="${INK}" stroke-width="8" stroke-linecap="round"/>
+      <circle cx="212" cy="56" r="8" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <path d="M162 98 L212 56" stroke="#78716c" stroke-width="3"/>
+      ${arrow(176, 108, 224, 72)}
+      <rect x="236" y="36" width="44" height="24" rx="8" fill="#fff7ed" stroke="${ARROW}" stroke-width="1.5"/>
+      <text x="258" y="52" text-anchor="middle" fill="#9a3412" font-size="12" font-weight="800" font-family="Noto Sans KR, sans-serif">1초</text>
+      <path d="M258 68 v34" stroke="${ARROW}" stroke-width="2.5" stroke-dasharray="4 4" stroke-linecap="round"/>
+      ${head(258, 110, 0, 10)}`;
+  },
+  latpull() {
+    return `
+      <line x1="24" y1="148" x2="296" y2="148" stroke="#d8d0c5" stroke-width="2" stroke-linecap="round"/>
+      <!-- 높은 랫풀다운 프레임 & 무게추 타워 -->
+      <rect x="228" y="34" width="42" height="114" rx="6" fill="#d6d3d1" stroke="#78716c" stroke-width="2"/>
+      <path d="M236 52 h26 M236 64 h26 M236 76 h26 M236 88 h26" stroke="#57534e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M138 24 H252 V34" fill="none" stroke="#57534e" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- 케이블 & 도르래 & 넓은 바 -->
+      <circle cx="146" cy="24" r="5" fill="#44403c"/>
+      <line x1="146" y1="24" x2="146" y2="64" stroke="#78716c" stroke-width="2.5"/>
+      <path d="M98 64 Q146 58 194 64" fill="none" stroke="#292524" stroke-width="5" stroke-linecap="round"/>
+      <!-- 무릎 고정 패드 & 의자 -->
+      <rect x="114" y="106" width="38" height="12" rx="5" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <rect x="116" y="126" width="52" height="12" rx="5" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <path d="M142 138 V148" stroke="#78716c" stroke-width="6"/>
+      <!-- 앉아서 바 당기는 실루엣 -->
+      <circle cx="146" cy="76" r="10" fill="${SKIN}" stroke="${INK}" stroke-width="2"/>
+      <path d="M146 88 V124" stroke="${INK}" stroke-width="11" stroke-linecap="round"/>
+      <path d="M142 94 L112 96 L104 66" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M150 94 L180 96 L188 66" fill="none" stroke="${INK}" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+      ${arrow(82, 56, 82, 92)}
+      <text x="64" y="78" fill="#9a3412" font-size="11" font-weight="800" font-family="Noto Sans KR, sans-serif">당김</text>`;
+  },
+  chest() {
+    return `
+      <line x1="24" y1="146" x2="296" y2="146" stroke="#d8d0c5" stroke-width="2" stroke-linecap="round"/>
+      <!-- 무게추 타워 & 체스트프레스 프레임 -->
+      <rect x="34" y="34" width="38" height="112" rx="6" fill="#d6d3d1" stroke="#78716c" stroke-width="2"/>
+      <path d="M42 52 h22 M42 64 h22 M42 76 h22 M42 88 h22" stroke="#57534e" stroke-width="4" stroke-linecap="round"/>
+      <path d="M72 42 H132 V146 M108 128 H156 V146" fill="none" stroke="#78716c" stroke-width="6" stroke-linecap="round"/>
+      <!-- 등받이 & 시트 -->
+      <rect x="96" y="54" width="14" height="58" rx="6" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <rect x="104" y="110" width="54" height="14" rx="6" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <!-- 프레스 암(손잡이) -->
+      <path d="M132 46 L176 86 H196" fill="none" stroke="#44403c" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+      <rect x="190" y="76" width="12" height="22" rx="4" fill="#292524"/>
+      <!-- 앉아서 미는 실루엣 -->
+      <circle cx="122" cy="52" r="10" fill="${SKIN}" stroke="${INK}" stroke-width="2"/>
+      <path d="M118 64 V108 L156 114 L162 142" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+      <path d="M122 82 H190" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>
+      <!-- 가슴 중앙 점선 & 미는 화살표 -->
+      <line x1="88" y1="86" x2="232" y2="86" stroke="${ARROW}" stroke-width="1.5" stroke-dasharray="4 4"/>
+      ${arrow(196, 62, 244, 62)}
+      <text x="200" y="54" fill="#9a3412" font-size="11" font-weight="800" font-family="Noto Sans KR, sans-serif">가슴 중앙</text>`;
+  },
+  reardelt() {
+    return `
+      <line x1="24" y1="148" x2="296" y2="148" stroke="#d8d0c5" stroke-width="2" stroke-linecap="round"/>
+      <!-- 펙덱 머신 수직 패드(가슴 대는 곳) & 기둥 -->
+      <path d="M84 34 V148 M142 128 V148" stroke="#78716c" stroke-width="6" stroke-linecap="round"/>
+      <rect x="94" y="48" width="18" height="68" rx="7" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <rect x="118" y="118" width="54" height="14" rx="6" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <!-- 반대로 앉아 가슴을 패드에 댄 실루엣 -->
+      <circle cx="128" cy="46" r="10" fill="${SKIN}" stroke="${INK}" stroke-width="2"/>
+      <path d="M124 58 L116 98 L154 118 L158 144" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+      <!-- 팔을 뒤로 벌리는 동작 -->
+      <path d="M120 74 L178 72 L214 66" fill="none" stroke="${INK}" stroke-width="7" stroke-linecap="round"/>
+      <rect x="210" y="56" width="10" height="22" rx="4" fill="#292524"/>
+      ${arrow(176, 52, 224, 48)}
+      <circle cx="104" cy="82" r="6" fill="${ARROW}"/>
+      <text x="22" y="86" fill="#9a3412" font-size="11" font-weight="800" font-family="Noto Sans KR, sans-serif">가슴 밀착</text>
+      <text x="160" y="34" fill="#9a3412" font-size="12" font-weight="800" font-family="Noto Sans KR, sans-serif">반대로 앉기</text>`;
+  },
+  backext() {
+    return `
+      <line x1="24" y1="148" x2="296" y2="148" stroke="#d8d0c5" stroke-width="2" stroke-linecap="round"/>
+      <!-- 45도 로만체어(백 익스텐션 벤치) -->
+      <path d="M72 148 L156 96 M136 148 L118 118 M72 138 H156" stroke="#78716c" stroke-width="6" stroke-linecap="round"/>
+      <circle cx="72" cy="134" r="8" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <rect x="128" y="84" width="38" height="16" rx="6" transform="rotate(-24 147 92)" fill="${PAD}" stroke="${INK}" stroke-width="2"/>
+      <!-- 일직선 자세 실루엣 -->
+      <path d="M74 128 L142 88 L212 52" fill="none" stroke="${INK}" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+      <circle cx="226" cy="44" r="10" fill="${SKIN}" stroke="${INK}" stroke-width="2"/>
+      <!-- 내려갔다 일직선까지 올라오는 화살표 -->
+      <path d="M146 88 L194 124" stroke="#b7aea4" stroke-width="6" stroke-dasharray="5 5" stroke-linecap="round"/>
+      ${arrow(188, 112, 204, 72)}
+      <text x="218" y="88" fill="#9a3412" font-size="12" font-weight="800" font-family="Noto Sans KR, sans-serif">일직선</text>`;
+  },
+  roller() {
+    const roll = (cx) => `<ellipse cx="${cx}" cy="126" rx="34" ry="12" fill="#5b21b6"/><ellipse cx="${cx}" cy="122" rx="34" ry="10" fill="#7c3aed"/><ellipse cx="${cx}" cy="119" rx="16" ry="3.5" fill="#ddd6fe"/>`;
+    return `
+      <text x="58" y="28" text-anchor="middle" font-size="12" font-weight="800" fill="${INK}" font-family="Noto Sans KR, sans-serif">종아리</text>
+      <text x="160" y="28" text-anchor="middle" font-size="12" font-weight="800" fill="${INK}" font-family="Noto Sans KR, sans-serif">허벅지 옆</text>
+      <text x="262" y="28" text-anchor="middle" font-size="12" font-weight="800" fill="${INK}" font-family="Noto Sans KR, sans-serif">상부 등</text>
+      <path d="M106 38 V154 M214 38 V154" stroke="#e5ddd3" stroke-width="2"/>
+      ${roll(58)}${roll(160)}${roll(262)}
+      <path d="M26 106 H90" stroke="${SKIN}" stroke-width="14" stroke-linecap="round"/>
+      ${arrow(30, 88, 88, 88)}
+      <path d="M160 62 V110" stroke="${SKIN}" stroke-width="16" stroke-linecap="round"/>
+      ${arrow(138, 72, 138, 108)}
+      <path d="M230 102 C250 76 278 76 296 102" fill="none" stroke="${SKIN}" stroke-width="13" stroke-linecap="round"/>
+      ${arrow(234, 84, 290, 84)}`;
+  },
+  generic() {
+    return `${personHead(150, 58)}<path d="M150 70 v40 M150 84 l-24 16 M150 84 l24 16 M150 110 l-16 24 M150 110 l16 24" fill="none" stroke="${INK}" stroke-width="3" stroke-linecap="round"/>${arrow(196, 118, 248, 78)}`;
+  }
+};
+function illustration(kind, label) {
+  const draw = ARTS[kind] || ARTS.generic;
+  return `<svg viewBox="0 0 320 168" role="img" aria-label="${esc(label)}"><rect width="320" height="168" fill="#f6f2eb"/>${draw()}</svg>`;
+}
+
+function buildAiText() {
+  const list = activeRoutine();
+  const lines = [`# ${NAMES[user]} 운동 기록`, `파일: ${FILES[user]}`, "", "## 현재 루틴"];
+  list.forEach((ex, i) => {
+    lines.push(`${i}. ${ex.name}${ex.subtitle ? ` (${ex.subtitle})` : ""} — ${prescription(ex)}`);
+    if (ex.tip) lines.push(`   포인트: ${ex.tip}`);
+  });
+  lines.push("", "## 일지");
+  const days = data.days.slice().sort((a, b) => b.date.localeCompare(a.date));
+  if (!days.length) lines.push("기록 없음");
+  days.forEach((day) => {
+    lines.push("", `### ${formatDate(day.date)}`);
+    idsForDay(day).forEach((id) => {
+      const rec = day.exercises[id];
+      if (!meaningful(rec)) return;
+      const ex = list.find((item) => item.id === id);
+      const done = Array.isArray(rec.done) ? rec.done : [];
+      const bits = [];
+      if (String(rec.weight || "").trim()) bits.push(`${rec.weight}kg`);
+      if (done.length) bits.push(`${done.filter(Boolean).length}/${done.length}세트`);
+      if (ex && ex.reps) bits.push(ex.reps);
+      lines.push(`- ${ex ? ex.name : id}: ${bits.join(" · ")}`);
+    });
+  });
+  return `${lines.join("\n").trim()}\n`;
+}
+async function copyText(text) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (e) {
+    const area = document.createElement("textarea");
+    area.value = text;
+    document.body.appendChild(area);
+    area.select();
+    document.execCommand("copy");
+    area.remove();
+  }
+}
+function toast(message) {
+  const el = document.getElementById("toast");
+  if (!el) return;
+  el.textContent = message;
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), 1800);
+}
+function defaultSync() {
+  return readCfg().token ? "변경하면 깃허브에 자동 저장" : "이 기기에만 저장 중";
+}
+function setSyncFor(which, text, bad) {
+  syncMsg[which] = { text, bad: !!bad };
+  if (which === user) paintSync();
+}
+function paintSync() {
+  const el = document.getElementById("sync");
+  if (!el) return;
+  const msg = syncMsg[user] || { text: defaultSync(), bad: false };
+  el.textContent = msg.text;
+  el.classList.toggle("bad", !!msg.bad);
+}
+function renderChrome() {
+  document.querySelectorAll("[data-user]").forEach((btn) => {
+    btn.setAttribute("aria-checked", String(btn.dataset.user === user));
+  });
+  document.querySelectorAll("[data-tab]").forEach((btn) => {
+    btn.setAttribute("aria-selected", String(btn.dataset.tab === tab));
+  });
+  const date = document.getElementById("date");
+  const file = document.getElementById("filename");
+  if (date) date.textContent = headerDate();
+  if (file) file.textContent = FILES[user];
+  document.title = `운동 기록 · ${NAMES[user]}`;
+  paintSync();
+}
+function banner() {
+  let html = "";
+  if (blocked) {
+    html += `<div class="banner bad"><p>이 사용자의 저장 기록을 읽지 못했습니다. 덮어쓰지 않도록 자동 저장을 멈춰 두었습니다.</p><div class="row"><button type="button" data-action="discard-corrupt">새로 기록 시작</button></div></div>`;
+  }
+  if (pending) {
+    html += `<div class="banner"><p>${esc(pending.message)}</p><div class="row"><button type="button" data-action="confirm-yes">확인</button><button type="button" class="ghost" data-action="confirm-no">취소</button></div></div>`;
+  }
+  return html;
+}
+function exerciseCard(ex, index, markNext) {
+  const rec = viewRec(ex);
+  const allDone = rec.done.every(Boolean);
+  const tags = [`<span class="tag">${esc(ex.subtitle)}</span>`];
+  if (allDone) tags.push(`<span class="tag ok">완료</span>`);
+  else if (markNext) tags.push(`<span class="tag next">다음</span>`);
+  const buttons = rec.done.map((on, i) => {
+    const caption = ex.sets === 1 ? "완료" : String(i + 1);
+    return `<button type="button" class="${on ? "on" : ""}" data-action="toggle-set" data-ex="${esc(ex.id)}" data-set="${i}" aria-pressed="${on}" aria-label="${esc(ex.name)} ${caption}">${caption}</button>`;
+  }).join("");
+  const weight = ex.weight ? `<label class="field">무게 (kg)<input data-ex="${esc(ex.id)}" inputmode="decimal" autocomplete="off" placeholder="${esc(ex.guide ? ex.guide.split(" · ")[0] : "예: 15")}" value="${esc(rec.weight)}" /></label>` : "";
+  return `<article class="ex${allDone ? " done" : ""}">
+    ${illustration(ex.art, ALT[ex.art] || ALT.generic)}
+    <div class="body">
+      <div class="title-row"><h2><span class="idx">${index}</span>${esc(ex.name)}</h2><div class="tags">${ex.subtitle ? tags.join("") : tags.slice(1).join("")}</div></div>
+      <p class="meta">${esc(prescription(ex))}${ex.guide ? ` · ${esc(ex.guide)}` : ""}</p>
+      <p class="point"><strong>포인트</strong> · ${esc(ex.tip)}</p>
+      ${ex.youtubeUrl ? `<a class="yt-btn" href="${esc(ex.youtubeUrl)}" target="_blank" rel="noopener noreferrer">📺 자세 영상 보기</a>` : ""}
+      <p class="prev">${esc(prevText(ex))}</p>
+      ${weight}
+      <div class="sets">
+        <div class="sets-label"><span>세트</span>${ex.rest ? `<span>체크하면 ${ex.rest}초</span>` : "<span>휴식 없음</span>"}</div>
+        <div class="set-row">${buttons}</div>
       </div>
-
-      <div class="px-4 pt-3 pb-2.5">
-        <div class="flex items-start justify-between gap-2">
-          <div>
-            <div class="flex items-center gap-1.5 mb-1">
-              <span id="sync-badge" class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-bold bg-slate-100 text-slate-600 border border-slate-200">
-                ⚪ 깃허브 미연동 (로컬 모드)
-              </span>
-            </div>
-            <h1 id="routine-title" class="text-lg font-extrabold tracking-tight text-slate-900 leading-snug">
-              주 2회 지하 헬스장 전신 루틴
-            </h1>
-            <p id="routine-subtitle" class="text-[11px] font-medium text-slate-500 mt-0.5">
-              기구 그림을 보고 순서대로 따라 하세요 · 약 45~50분
-            </p>
-          </div>
-          <button 
-            onclick="openResetModal()" 
-            class="shrink-0 px-2.5 py-1.5 rounded-xl text-xs font-semibold bg-slate-100 hover:bg-slate-200 active:bg-slate-300 text-slate-700 border border-slate-200 transition">
-            체크 초기화
-          </button>
+    </div>
+  </article>`;
+}
+function guidanceCard() {
+  const g = GUIDANCE[user] || GUIDANCE.pretty;
+  const rows = g.items.map(([k, v]) => {
+    const body = esc(v).replace(/\n/g, "<br>");
+    return `<li><strong>${esc(k)}:</strong> ${v.includes("\n") ? "<br>" : ""}${body}</li>`;
+  }).join("");
+  return `<section class="guide-card"><h3>${esc(g.title)}</h3><ul>${rows}</ul></section>`;
+}
+function renderToday() {
+  const prog = todayProgress();
+  let marked = false;
+  const cards = activeRoutine().map((ex, i) => {
+    const done = viewRec(ex).done.every(Boolean);
+    const mark = !marked && !done;
+    if (mark) marked = true;
+    return exerciseCard(ex, i, mark);
+  }).join("");
+  return `${banner()}<section class="summary"><div class="row"><strong>오늘 ${prog.done}/${prog.total}세트</strong><span>${prog.pct}%</span></div><p class="meta" style="margin-top:4px">${esc(PROFILES[user] || PROFILES.pretty)}</p><div class="progress" aria-hidden="true"><div style="width:${prog.pct}%"></div></div></section>${guidanceCard()}${cards}`;
+}
+function renderJournal() {
+  const days = data.days.slice().filter((day) => Object.values(day.exercises).some(meaningful)).sort((a, b) => b.date.localeCompare(a.date));
+  const cards = days.map((day) => {
+    const items = idsForDay(day).map((id) => {
+      const rec = day.exercises[id];
+      if (!meaningful(rec)) return "";
+      const ex = activeRoutine().find((item) => item.id === id);
+      const done = Array.isArray(rec.done) ? rec.done : [];
+      const bits = [];
+      if (String(rec.weight || "").trim()) bits.push(`${rec.weight}kg`);
+      if (done.length) bits.push(`${done.filter(Boolean).length}/${done.length}세트`);
+      return `<li><strong>${esc(ex ? ex.name : id)}</strong> · ${esc(bits.join(" · "))}</li>`;
+    }).join("");
+    return `<article class="day"><h3>${esc(formatDate(day.date))}</h3><ul>${items}</ul></article>`;
+  }).join("");
+  const empty = `<div class="empty"><p>아직 기록이 없습니다.</p><p>오늘 운동에서 세트를 누르면 이곳에 쌓입니다.</p></div>`;
+  return `${banner()}<section class="panel"><h2>운동 일지</h2><p class="lead">${esc(NAMES[user])} · ${days.length}일 · <span class="filechip">${esc(FILES[user])}</span></p><div class="actions"><button type="button" class="wide" data-action="copy-log">AI 전달용 기록 복사</button></div></section>${cards || empty}`;
+}
+function renderRoutine() {
+  const example = `{
+  "id": "squat",
+  "name": "스쿼트",
+  "subtitle": "하체",
+  "sets": 3,
+  "reps": "10회",
+  "rest": 60,
+  "weight": true,
+  "tip": "무릎을 발끝 방향으로",
+  "art": "legpress"
+}`;
+  return `${banner()}<section class="panel"><h2>루틴 교체</h2><p class="lead">배열 JSON으로 이 사용자의 루틴만 바꿉니다. id가 같으면 지난 무게·세트 기록과 이어집니다. 그림 키: treadmill, legpress, legcurl, legext, latpull, chest, reardelt, backext, roller, generic.</p>
+    <label class="field">새 루틴 JSON<textarea id="routineInput" spellcheck="false">${esc(routineDraft)}</textarea></label>
+    <p id="routineError" class="note bad">${esc(routineError)}</p>
+    <div class="actions">
+      <button type="button" data-action="apply-routine">이 코드로 교체</button>
+      <button type="button" class="ghost" data-action="reset-routine">기본 루틴으로 복원</button>
+      <button type="button" class="ghost" data-action="fill-routine">기본 루틴 채우기</button>
+      <button type="button" class="ghost" data-action="copy-routine">현재 루틴 복사</button>
+    </div>
+    <details class="help"><summary>항목 예시</summary><pre>${esc(example)}</pre></details>
+  </section>`;
+}
+function renderGithub() {
+  const cfg = readCfg();
+  return `${banner()}<section class="panel"><h2>깃허브 설정</h2><p class="lead">Fine-grained PAT에 이 저장소의 Contents 읽기·쓰기 권한이 필요합니다. 토큰은 이 브라우저에만 저장되고 운동 JSON에는 들어가지 않습니다. 사람마다 파일이 분리되고, 저장 파일에는 날짜별 기록이 누적됩니다.</p>
+    <p class="lead">지금 사용자 <strong>${esc(NAMES[user])}</strong></p>
+    <span class="filechip">${esc(FILES[user])}</span>
+    <label class="field">GitHub 아이디<input id="ghOwner" autocomplete="off" value="${esc(cfg.owner)}" /></label>
+    <label class="field">저장소 이름<input id="ghRepo" autocomplete="off" value="${esc(cfg.repo)}" /></label>
+    <label class="field">Fine-grained Personal Access Token<input id="ghToken" type="password" autocomplete="off" spellcheck="false" placeholder="${cfg.token ? "저장됨 · 바꾸려면 새로 입력" : "github_pat_..."}" /></label>
+    <div class="actions">
+      <button type="button" data-action="save-github" ${netBusy ? "disabled" : ""}>설정 저장</button>
+      <button type="button" class="ghost" data-action="clear-token">토큰 삭제</button>
+      <button type="button" data-action="pull-github" ${netBusy ? "disabled" : ""}>깃허브에서 불러오기</button>
+      <button type="button" data-action="push-github" ${netBusy ? "disabled" : ""}>지금 깃허브에 저장</button>
+    </div>
+    <p class="lead">다른 기기에서 이어서 하려면 먼저 불러오기를 누르세요. 이후 변경은 자동으로 커밋됩니다.</p>
+    ${note ? `<p class="note${noteBad ? " bad" : ""}">${esc(note)}</p>` : ""}
+    ${lastError && lastError !== note ? `<p class="note bad">${esc(lastError)}</p>` : ""}
+  </section>`;
+}
+function renderView() {
+  const view = document.getElementById("view");
+  if (!view) return;
+  if (tab === "journal") view.innerHTML = renderJournal();
+  else if (tab === "routine") view.innerHTML = renderRoutine();
+  else if (tab === "github") view.innerHTML = renderGithub();
+  else view.innerHTML = renderToday();
+}
+function mount() {
+  document.documentElement.dataset.user = user;
+  app.innerHTML = `
+    <div class="sticky-wrap">
+      <header class="top">
+        <p class="eyebrow"><span id="date"></span> · <span id="filename"></span></p>
+        <div class="users" role="radiogroup" aria-label="사용자">
+          <button type="button" data-user="pretty" role="radio">이쁜이</button>
+          <button type="button" data-user="reliable" role="radio">듬직이</button>
         </div>
+        <p id="sync" class="sync" aria-live="polite"></p>
+      </header>
+      <section class="timer" id="timer" aria-label="휴식 타이머">
+        <div class="timer-top">
+          <div>
+            <p class="timer-kicker">휴식 타이머</p>
+            <p id="clock">00:00</p>
+          </div>
+          <div class="timer-actions">
+            <button type="button" data-seconds="45">45초</button>
+            <button type="button" data-seconds="60">60초</button>
+            <button type="button" data-action="stop-timer">정지</button>
+          </div>
+        </div>
+        <p id="timerLabel" aria-live="polite">대기 중</p>
+      </section>
+    </div>
+    <main id="view"></main>
+    <nav role="tablist" aria-label="메뉴">
+      <button type="button" data-tab="today" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12h16M12 4v16"/></svg><span>오늘 운동</span></button>
+      <button type="button" data-tab="journal" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 5h12v14H6zM9 9h6M9 13h6"/></svg><span>운동 일지</span></button>
+      <button type="button" data-tab="routine" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg><span>루틴 교체</span></button>
+      <button type="button" data-tab="github" role="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="6" cy="6" r="2"/><circle cx="6" cy="18" r="2"/><circle cx="18" cy="12" r="2"/><path d="M6 8v8M8 7c6 0 8 4 8 5"/></svg><span>깃허브 설정</span></button>
+    </nav>
+    <div id="toast" role="status"></div>`;
+  renderChrome();
+  renderView();
+  paintTimer(0);
+}
 
-        <!-- 네비게이션 탭 -->
-        <nav class="grid grid-cols-4 gap-1 bg-slate-100 p-1 rounded-xl mt-3">
-          <button onclick="switchTab('workout')" id="tab-workout" class="tab-btn py-1.5 rounded-lg text-xs font-extrabold bg-white text-blue-700 shadow-xs transition">
-            🏋️ 오늘 운동
-          </button>
-          <button onclick="switchTab('history')" id="tab-history" class
+function setUser(next) {
+  if (next !== "pretty" && next !== "reliable") return;
+  if (next === user) return;
+  flushPush();
+  user = next;
+  localStorage.setItem(ACTIVE_KEY, user);
+  document.documentElement.dataset.user = user;
+  pending = null;
+  note = "";
+  loadData();
+  if (!syncMsg[user]) setSyncFor(user, defaultSync(), false);
+  renderChrome();
+  renderView();
+}
+function toggleSet(id, index) {
+  if (blocked) return;
+  const ex = activeRoutine().find((item) => item.id === id);
+  if (!ex || index < 0 || index >= ex.sets) return;
+  const day = ensureToday();
+  const rec = ensureRec(day, ex);
+  const turningOn = !rec.done[index];
+  rec.done[index] = turningOn;
+  saveLocal();
+  if (turningOn && ex.rest > 0) startTimer(ex.rest, `${ex.name} · ${ex.rest}초`);
+  if (turningOn && navigator.vibrate) navigator.vibrate(12);
+  renderView();
+}
+function onWeight(id, input) {
+  if (blocked) return;
+  const ex = activeRoutine().find((item) => item.id === id);
+  if (!ex) return;
+  const cleaned = cleanWeight(input.value);
+  if (input.value !== cleaned) input.value = cleaned;
+  const rec = ensureRec(ensureToday(), ex);
+  rec.weight = cleaned;
+  saveLocal();
+}
+function confirmYes() {
+  const current = pending;
+  pending = null;
+  if (!current) return;
+  if (current.type === "routine") {
+    data.routine = current.routine;
+    saveLocal();
+    routineError = "";
+    toast("루틴을 바꿨습니다.");
+    renderView();
+  } else if (current.type === "restore") {
+    data.routine = null;
+    saveLocal();
+    toast("기본 루틴으로 되돌렸습니다.");
+    renderView();
+  } else if (current.type === "pull") {
+    renderView();
+    withNet(pullGithub);
+  }
+}
+function runAction(action, btn) {
+  if (action === "stop-timer") return stopTimer(false);
+  if (action === "toggle-set") return toggleSet(btn.dataset.ex, Number(btn.dataset.set));
+  if (action === "confirm-no") { pending = null; renderView(); return; }
+  if (action === "confirm-yes") return confirmYes();
+  if (action === "discard-corrupt") {
+    blocked = false;
+    data = emptyData();
+    saveLocal(false);
+    toast("새 기록을 시작합니다.");
+    renderView();
+    return;
+  }
+  if (action === "copy-log") {
+    copyText(buildAiText()).then(() => toast("AI 전달용 기록을 복사했습니다."));
+    return;
+  }
+  if (action === "copy-routine") {
+    copyText(JSON.stringify(activeRoutine(), null, 2)).then(() => toast("현재 루틴 JSON을 복사했습니다."));
+    return;
+  }
+  if (action === "fill-routine") {
+    routineDraft = JSON.stringify(defaultRoutineFor(user), null, 2);
+    routineError = "";
+    renderView();
+    return;
+  }
+  if (action === "apply-routine") {
+    const text = document.getElementById("routineInput").value;
+    routineDraft = text;
+    try {
+      const next = parseRoutine(text);
+      routineError = "";
+      pending = { type: "routine", routine: next, message: `${next.length}개 운동으로 바꿀까요?\n${next.map((ex, i) => `${i}. ${ex.name}`).join("\n")}` };
+    } catch (err) {
+      routineError = err.message;
+      pending = null;
+    }
+    renderView();
+    return;
+  }
+  if (action === "reset-routine") {
+    if (!data.routine) { toast("이미 기본 루틴입니다."); return; }
+    pending = { type: "restore", message: "기본 루틴으로 되돌릴까요?\n지난 기록은 운동 id가 같으면 그대로 남습니다." };
+    renderView();
+    return;
+  }
+  if (action === "save-github") {
+    try {
+      const cfg = cfgFromForm(true);
+      note = cfg.token ? "설정을 저장했습니다. 이후 기록은 자동으로 커밋됩니다." : "아이디와 저장소를 저장했습니다. 토큰을 넣으면 자동 커밋이 켜집니다.";
+      noteBad = false;
+      toast("깃허브 설정을 저장했습니다.");
+      setSyncFor(user, defaultSync(), false);
+    } catch (err) {
+      note = err.message;
+      noteBad = true;
+    }
+    renderView();
+    return;
+  }
+  if (action === "clear-token") {
+    const cfg = readCfg();
+    cfg.token = "";
+    localStorage.setItem(GH_KEY, JSON.stringify(cfg));
+    pushQueued = false;
+    note = "이 브라우저에서 토큰을 지웠습니다.";
+    noteBad = false;
+    setSyncFor(user, defaultSync(), false);
+    renderView();
+    return;
+  }
+  if (action === "pull-github") {
+    if (data.days.length) {
+      pending = { type: "pull", message: `깃허브의 ${FILES[user]}로 이 기기의 ${NAMES[user]} 기록을 바꿀까요?` };
+      renderView();
+      return;
+    }
+    withNet(pullGithub);
+    return;
+  }
+  if (action === "push-github") withNet(manualPush);
+}
+app.addEventListener("click", (event) => {
+  const btn = event.target.closest("button");
+  if (!btn || !app.contains(btn)) return;
+  ensureAudio();
+  if (btn.dataset.user) return setUser(btn.dataset.user);
+  if (btn.dataset.seconds) return startTimer(Number(btn.dataset.seconds), `${btn.dataset.seconds}초 휴식`);
+  if (btn.dataset.tab) {
+    tab = btn.dataset.tab;
+    pending = null;
+    renderChrome();
+    renderView();
+    return;
+  }
+  if (btn.dataset.action) runAction(btn.dataset.action, btn);
+});
+app.addEventListener("input", (event) => {
+  const target = event.target;
+  if (target.id === "routineInput") {
+    routineDraft = target.value;
+    routineError = "";
+    const err = document.getElementById("routineError");
+    if (err) err.textContent = "";
+  }
+  if (target.dataset.ex) onWeight(target.dataset.ex, target);
+});
+app.addEventListener("focusin", (event) => {
+  if (event.target.matches("input, textarea")) {
+    setTimeout(() => event.target.scrollIntoView({ block: "center", behavior: "smooth" }), 180);
+  }
+});
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "hidden") flushPush();
+});
+window.addEventListener("pagehide", flushPush);
+
+loadData();
+setSyncFor(user, defaultSync(), false);
+mount();
+</script>
+</body>
+</html>
